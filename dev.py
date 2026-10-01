@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import os
 import shlex
 import shutil
 import subprocess
@@ -9,7 +10,9 @@ from pathlib import Path
 THIS_DIRECTORY = Path(__file__).parent.absolute()
 FRONTEND_DIRECTORY = THIS_DIRECTORY / "frontend"
 VENV_DIRECTORY = THIS_DIRECTORY / "venv"
-PYTHON_BIN = VENV_DIRECTORY / "bin" / "python"
+VENV_BIN_DIRECTORY = VENV_DIRECTORY / ("Scripts" if os.name == "nt" else "bin")
+PYTHON_BIN = VENV_BIN_DIRECTORY / "python"
+REQUIRED_EXECUTABLES = ["node", "yarn"]
 
 
 def run_verbose(cmd_args, *args, **kwargs):
@@ -32,24 +35,14 @@ def ensure_environment():
     if not PYTHON_BIN.exists():
         shell_cmd = shlex.join([str(__file__), "py-create-venv"])
         raise SystemExit(
-            "The virtual environment is not exists.\n"
-            "To create environment run:"
+            "The virtual environment does not exist.\n"
+            "To create the environment run:\n"
             f"   $ {shell_cmd}"
         )
 
-    try:
-        subprocess.check_call(
-            ["node", "--version"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL
-        )
-    except subprocess.CalledProcessError:
-        raise SystemExit("'node' is not installed")
-
-    try:
-        subprocess.check_call(
-            ["yarn", "--version"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL
-        )
-    except subprocess.CalledProcessError:
-        raise SystemExit("'yarn' is not installed")
+    for executable in REQUIRED_EXECUTABLES:
+        if shutil.which(executable) is None:
+            raise SystemExit(f"{executable!r} is not installed")
 
 
 def ensure_js_modules_installed():
@@ -166,7 +159,7 @@ def get_parser():
         func=lambda _: run_verbose(["yarn", "test"], cwd=FRONTEND_DIRECTORY)
     )
     subparsers.add_parser(
-        "package", help='Build frontend and then create a WHL pacakge".'
+        "package", help="Build frontend and then create a WHL package."
     ).set_defaults(func=cmd_package)
     return parser
 
