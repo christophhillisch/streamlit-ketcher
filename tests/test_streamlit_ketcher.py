@@ -31,12 +31,14 @@ def test_render_molecule_format(mock_render_component, molecule_format):
 
 
 @unittest.mock.patch("streamlit_ketcher._render_component")
-def test_invalid_molecule_format(mock_render_component):
+@pytest.mark.parametrize("molecule_format", ["INVALID", "smiles", "__doc__", "name"])
+def test_invalid_molecule_format(mock_render_component, molecule_format):
     with pytest.raises(
         ValueError,
         match=re.escape(
-            "Unsupported value for molecule format: 'INVALID'. "
+            f"Unsupported value for molecule format: {molecule_format!r}. "
             "Supported values: SMILES, MOLFILE"
         ),
     ):
-        st_ketcher(molecule_format="INVALID")
+        st_ketcher(molecule_format=molecule_format)
+    mock_render_component.assert_not_called()

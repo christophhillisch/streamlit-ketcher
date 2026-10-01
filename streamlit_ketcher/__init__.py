@@ -4,8 +4,8 @@ from typing import Optional
 from typing_extensions import Literal
 import streamlit.components.v1 as components
 
-# Create a _IS_DEV constant. We'll set this to False while we're developing
-# the component, and True when we're ready to package and distribute it.
+# Running this module directly (`streamlit run streamlit_ketcher/__init__.py`)
+# serves the component from the frontend dev server instead of the build.
 _IS_DEV = "__main__" == __name__
 
 if _IS_DEV:
@@ -25,14 +25,20 @@ class MoleculeFormat(Enum):
     MOLFILE = "MOLFILE"
 
 
+SUPPORTED_MOLECULE_FORMATS = [
+    molecule_format.value for molecule_format in MoleculeFormat
+]
+DEFAULT_HEIGHT = 500
+
+
 def st_ketcher(
     value: Optional[str] = "",
     *,
-    height: int = 500,
+    height: int = DEFAULT_HEIGHT,
     molecule_format: Literal["SMILES", "MOLFILE"] = MoleculeFormat.SMILES.value,
     key: Optional[str] = None,
-):
-    """Create a new instance of "my_component".
+) -> Optional[str]:
+    """Create a new instance of the Ketcher editor.
 
     Parameters
     ----------
@@ -50,14 +56,18 @@ def st_ketcher(
 
     Returns
     -------
-    str
+    str or None
         The current content of the editor widget.
+
+    Raises
+    ------
+    ValueError
+        If ``molecule_format`` is not one of the supported formats.
     """
-    if not getattr(MoleculeFormat, molecule_format, None):
-        supported_formats = ", ".join([d.name for d in MoleculeFormat])
+    if molecule_format not in SUPPORTED_MOLECULE_FORMATS:
         raise ValueError(
             f"Unsupported value for molecule format: {molecule_format!r}. "
-            f"Supported values: {supported_formats}"
+            f"Supported values: {', '.join(SUPPORTED_MOLECULE_FORMATS)}"
         )
     return _render_component(
         molecule=value,
