@@ -83,7 +83,10 @@ jobs:
         run: ./dev.py package
 
       - name: Verify package
-        run: tar -tvf dist/streamlit_ketcher-*.tar.gz | grep NOTICES
+        run: |
+          tar -tvf dist/streamlit_ketcher-*.tar.gz | grep NOTICES
+          tar -tvf dist/streamlit_ketcher-*.tar.gz | grep py.typed
+          unzip -l dist/streamlit_ketcher-*.whl | grep py.typed
 
       - run: mkdir -p "$(yarn cache dir)"
 

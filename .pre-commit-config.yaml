@@ -51,6 +51,13 @@ repos:
         types: [yaml]
   - repo: local
     hooks:
+      - id: mypy
+        name: Type-check the Python package with mypy
+        entry: mypy
+        language: system
+        types: [python]
+        files: ^streamlit_ketcher/
+        pass_filenames: false
       - id: yarn-format
         name: Run formatted for frontend code
         entry: ./dev.py js-format

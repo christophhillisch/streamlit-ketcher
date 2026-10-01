@@ -83,10 +83,11 @@ def st_ketcher(
     """
     _validate_molecule_format(molecule_format)
     _validate_height(height)
-    return _render_component(
+    molecule: str | None = _render_component(
         molecule=value,
         height=height,
         molecule_format=molecule_format,
         key=key,
         default=value,
     )
+    return molecule
