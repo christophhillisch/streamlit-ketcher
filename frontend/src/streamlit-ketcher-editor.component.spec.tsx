@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { StreamlitKetcherEditor } from "./streamlit-ketcher-editor.component";
 
 const EDITOR_HEIGHT = 500;
+const STATIC_RESOURCES_URL = "http://localhost/assets";
 
 const { editorMock } = vi.hoisted(() => ({ editorMock: vi.fn(() => null) }));
 
@@ -18,6 +19,7 @@ describe("StreamlitKetcherEditor", () => {
       render(
         <StreamlitKetcherEditor
           height={EDITOR_HEIGHT}
+          staticResourcesUrl={STATIC_RESOURCES_URL}
           errorHandler={vi.fn()}
           disableMacromoleculesEditor={disableMacromoleculesEditor}
         />,

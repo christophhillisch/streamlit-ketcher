@@ -22,17 +22,31 @@ ALL_MOLECULE_FORMATS = [
 ]
 
 
+def _expected_mount_call(
+    *,
+    molecule: str | None = "",
+    height: int = 500,
+    molecule_format: str = "SMILES",
+    macromolecules: bool = False,
+    key: str | None = None,
+) -> unittest.mock._Call:
+    return unittest.mock.call(
+        key=key,
+        data={
+            "molecule": molecule,
+            "height": height,
+            "molecule_format": molecule_format,
+            "macromolecules": macromolecules,
+        },
+        default={"molecule": molecule},
+        on_molecule_change=unittest.mock.ANY,
+    )
+
+
 @unittest.mock.patch("streamlit_ketcher._render_component")
 def test_render_empty(mock_render_component):
     st_ketcher()
-    mock_render_component.assert_called_once_with(
-        molecule="",
-        height=500,
-        molecule_format="SMILES",
-        macromolecules=False,
-        key=None,
-        default="",
-    )
+    assert mock_render_component.call_args_list == [_expected_mount_call()]
 
 
 @unittest.mock.patch("streamlit_ketcher._render_component")
@@ -44,28 +58,24 @@ def test_render_all_parameters(mock_render_component):
         macromolecules=True,
         key="key",
     )
-    mock_render_component.assert_called_once_with(
-        molecule="CC0",
-        height=600,
-        molecule_format="SMILES",
-        macromolecules=True,
-        key="key",
-        default="CC0",
-    )
+    assert mock_render_component.call_args_list == [
+        _expected_mount_call(molecule="CC0", height=600, macromolecules=True, key="key")
+    ]
 
 
 @unittest.mock.patch("streamlit_ketcher._render_component")
 @pytest.mark.parametrize("molecule_format", ALL_MOLECULE_FORMATS)
 def test_render_molecule_format(mock_render_component, molecule_format):
     st_ketcher(molecule_format=molecule_format)
-    mock_render_component.assert_called_once_with(
-        molecule="",
-        height=500,
-        molecule_format=molecule_format,
-        macromolecules=False,
-        key=None,
-        default="",
-    )
+    assert mock_render_component.call_args_list == [
+        _expected_mount_call(molecule_format=molecule_format)
+    ]
+
+
+@unittest.mock.patch("streamlit_ketcher._render_component")
+def test_returns_molecule_from_component_state(mock_render_component):
+    mock_render_component.return_value = {"molecule": "C1=CC=CC=C1"}
+    assert st_ketcher("CCO") == "C1=CC=CC=C1"
 
 
 @unittest.mock.patch("streamlit_ketcher._render_component")
@@ -102,14 +112,9 @@ def test_invalid_height(mock_render_component, height):
 @pytest.mark.parametrize("macromolecules", [True, False])
 def test_render_macromolecules(mock_render_component, macromolecules):
     st_ketcher(macromolecules=macromolecules)
-    mock_render_component.assert_called_once_with(
-        molecule="",
-        height=500,
-        molecule_format="SMILES",
-        macromolecules=macromolecules,
-        key=None,
-        default="",
-    )
+    assert mock_render_component.call_args_list == [
+        _expected_mount_call(macromolecules=macromolecules)
+    ]
 
 
 @unittest.mock.patch("streamlit_ketcher._render_component")

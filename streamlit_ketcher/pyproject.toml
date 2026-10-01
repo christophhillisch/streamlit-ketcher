@@ -1,0 +1,9 @@
+# Streamlit Components v2 manifest. Streamlit discovers it in the installed
+# package and serves `asset_dir` under /_stcore/bidi-components/.
+# `name` must match the distribution name in the repository-level pyproject.toml.
+[project]
+name = "streamlit_ketcher"
+
+[[tool.streamlit.component.components]]
+name = "ketcher"
+asset_dir = "frontend"

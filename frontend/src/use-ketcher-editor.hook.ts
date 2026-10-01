@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { Streamlit } from "streamlit-component-lib";
 import { Ketcher } from "ketcher-core";
 
 export const FORMAT_SMILES = "SMILES";
@@ -58,6 +57,7 @@ const serializeMolecule = (
 export const useKetcherEditor = (
   molecule: string | null,
   moleculeFormat: MoleculeFormatType,
+  onApply: (serializedMolecule: string) => void,
 ): IKetcherEditor => {
   const [ketcher, setKetcher] = useState<Ketcher | null>(null);
 
@@ -92,11 +92,11 @@ export const useKetcherEditor = (
         ketcher,
         moleculeFormat,
       );
-      Streamlit.setComponentValue(serializedMolecule);
+      onApply(serializedMolecule);
     } catch (error) {
       logError("SERIALIZE_FAILED", error);
     }
-  }, [ketcher, moleculeFormat]);
+  }, [ketcher, moleculeFormat, onApply]);
 
   return { isReady: ketcher !== null, handleInit, handleReset, handleApply };
 };

@@ -4,9 +4,6 @@ import { Editor as KetcherEditor } from "ketcher-react";
 import styled from "@emotion/styled";
 import { Ketcher } from "ketcher-core";
 
-// Ketcher loads "<url>/templates/..." relative to the component's index.html.
-const STATIC_RESOURCES_URL = ".";
-
 type KetcherEditorPropsType = ComponentProps<typeof KetcherEditor>;
 
 interface KetcherEditorWrapperProps {
@@ -17,11 +14,13 @@ const KetcherEditorWrapper = styled.div<KetcherEditorWrapperProps>((props) => ({
   height: `${props.height}px`,
 }));
 
+// Shared for the page lifetime: Ketcher cannot terminate the Indigo worker a
+// provider starts, so one per editor would leak a worker on every remount.
 const structServiceProvider = new StandaloneStructServiceProvider();
 
 export interface StreamlitKetcherEditorProps extends Omit<
   KetcherEditorPropsType,
-  "staticResourcesUrl" | "structServiceProvider"
+  "structServiceProvider"
 > {
   onInit?: (ketcher: Ketcher) => void;
   height: number;
@@ -32,11 +31,7 @@ export const StreamlitKetcherEditor = ({
   ...rest
 }: StreamlitKetcherEditorProps) => (
   <KetcherEditorWrapper height={height}>
-    <KetcherEditor
-      staticResourcesUrl={STATIC_RESOURCES_URL}
-      structServiceProvider={structServiceProvider}
-      {...rest}
-    />
+    <KetcherEditor structServiceProvider={structServiceProvider} {...rest} />
   </KetcherEditorWrapper>
 );
 

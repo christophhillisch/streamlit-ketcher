@@ -9,17 +9,15 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@react-hook/resize-observer": "^2.0.2",
-    "color2k": "^2.0.4",
     "events": "^3.3.0",
     "ketcher-core": "^3.18.0",
     "ketcher-react": "^3.18.0",
     "ketcher-standalone": "^3.18.0",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "streamlit-component-lib": "^2.0.0"
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
+    "@streamlit/component-v2-lib": "^0.2.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -34,7 +32,7 @@
     "vitest": "^5.0.3"
   },
   "scripts": {
-    "start": "vite",
+    "start": "vite build --watch --mode development",
     "build": "tsc --noEmit && vite build",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
@@ -45,8 +43,6 @@
   "resolutions": {
     "ketcher-core": "3.18.0",
     "ketcher-react": "3.18.0",
-    "ketcher-standalone": "3.18.0",
-    "streamlit-component-lib/react": "^19.3.0",
-    "streamlit-component-lib/react-dom": "^19.3.0"
+    "ketcher-standalone": "3.18.0"
   }
 }

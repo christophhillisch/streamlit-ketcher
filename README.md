@@ -61,6 +61,11 @@ smile_code = st_ketcher(molecule, macromolecules=True)
 inchi = st_ketcher("InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3", molecule_format="INCHI")
 ```
 
+> **One editor per page.** Ketcher's standalone mode supports a single working
+> editor per browser page. If an app calls `st_ketcher` more than once on the same
+> page, the first editor works and the others show a notice. Use separate pages
+> (`st.navigation`) for several editors.
+
 ## Development
 
 Requires Python 3.14+ and the Node.js version in [`.nvmrc`](.nvmrc).
@@ -84,7 +89,7 @@ Linux-only and must match the CI runner pixel for pixel. To regenerate them,
 run the *Continuous Integration* workflow from the Actions tab with
 *Regenerate the e2e screenshot baselines* ticked, then commit the images from
 its `Snapshots` artifact.
-See [frontend/README.md](frontend/README.md) for frontend hot reload.
+See [frontend/README.md](frontend/README.md) for rebuilding the frontend on change.
 
 ## Demo
 
