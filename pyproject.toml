@@ -28,6 +28,9 @@ requires-python = ">=3.7"
 [tool.setuptools]
 packages = {find={}}
 
+[tool.setuptools.package-data]
+streamlit_ketcher = ["py.typed"]
+
 [project.urls]
 "Homepage" = "https://github.com/mik-laj/streamlit-ketcher"
 "Bug Tracker" = "https://github.com/mik-laj/streamlit-ketcher/issues"
