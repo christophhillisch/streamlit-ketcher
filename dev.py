@@ -5,6 +5,7 @@ import os
 import shlex
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 THIS_DIRECTORY = Path(__file__).parent.absolute()
@@ -19,13 +20,15 @@ def run_verbose(cmd_args, *args, **kwargs):
     kwargs.setdefault("check", True)
 
     print(f"$ {shlex.join(cmd_args)}", flush=True)
-    subprocess.run(cmd_args, *args, **kwargs)
+    # Resolve wrappers such as yarn.cmd on Windows, which Popen does not find.
+    executable = shutil.which(cmd_args[0]) or cmd_args[0]
+    subprocess.run([executable, *cmd_args[1:]], *args, **kwargs)
 
 
 def ensure_environment():
     try:
         subprocess.check_call(
-            ["python", "-m", "venv", "--help"],
+            [sys.executable, "-m", "venv", "--help"],
             stderr=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
         )
@@ -50,7 +53,7 @@ def ensure_js_modules_installed():
 
 
 def cmd_py_create_venv(args):
-    run_verbose(["python", "-m", "venv", str(VENV_DIRECTORY)], cwd=THIS_DIRECTORY)
+    run_verbose([sys.executable, "-m", "venv", str(VENV_DIRECTORY)], cwd=THIS_DIRECTORY)
     run_verbose(
         [
             str(PYTHON_BIN),
