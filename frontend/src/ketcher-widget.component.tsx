@@ -1,17 +1,10 @@
-import {
-  ComponentProps,
-  Streamlit,
-  withStreamlitConnection,
-} from "streamlit-component-lib";
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { lazy, Suspense } from "react";
 import "ketcher-react/dist/index.css";
-import useResizeObserver from "@react-hook/resize-observer";
 import { Button, ButtonContainer } from "./button.component";
 import {
   EmptySpace,
   LoadingPlaceholder,
 } from "./loading-placeholder.component";
-import { FixedTheme } from "./theme";
 import {
   logKetcherError,
   MoleculeFormatType,
@@ -22,30 +15,29 @@ const StreamlitKetcherEditor = lazy(
   () => import("./streamlit-ketcher-editor.component"),
 );
 
-export interface IKetcherWidgetArgs {
-  molecule: string | null;
-  height: number;
-  molecule_format: MoleculeFormatType;
+export interface IKetcherWidgetProps {
+  readonly molecule: string | null;
+  readonly height: number;
+  readonly moleculeFormat: MoleculeFormatType;
+  readonly staticResourcesUrl: string;
+  readonly onApply: (serializedMolecule: string) => void;
 }
 
-export interface IKetcherWidgetProps extends ComponentProps {
-  args: IKetcherWidgetArgs;
-}
-
-export const KetcherWidget = function (props: IKetcherWidgetProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const { molecule, molecule_format: moleculeFormat, height } = props.args;
-  const theme = props.theme as FixedTheme;
+export const KetcherWidget = ({
+  molecule,
+  height,
+  moleculeFormat,
+  staticResourcesUrl,
+  onApply,
+}: IKetcherWidgetProps) => {
   const { isReady, handleInit, handleReset, handleApply } = useKetcherEditor(
     molecule,
     moleculeFormat,
+    onApply,
   );
 
-  useEffect(() => Streamlit.setFrameHeight());
-  useResizeObserver(editorRef, () => Streamlit.setFrameHeight());
-
   return (
-    <div ref={editorRef}>
+    <div data-testid="streamlit-ketcher">
       {!isReady && (
         <LoadingPlaceholder data-testid="loading-placeholder" height={height}>
           Loading...
@@ -54,22 +46,19 @@ export const KetcherWidget = function (props: IKetcherWidgetProps) {
       <Suspense fallback={<EmptySpace height={height} />}>
         <StreamlitKetcherEditor
           height={height}
+          staticResourcesUrl={staticResourcesUrl}
           errorHandler={logKetcherError}
           onInit={handleInit}
         />
       </Suspense>
       <ButtonContainer>
-        <Button theme={theme} onClick={handleReset} disabled={!isReady}>
+        <Button onClick={handleReset} disabled={!isReady}>
           Reset
         </Button>
-        <Button theme={theme} onClick={handleApply} disabled={!isReady}>
+        <Button onClick={handleApply} disabled={!isReady}>
           Apply
         </Button>
       </ButtonContainer>
     </div>
   );
 };
-
-// "withStreamlitConnection" bootstraps the connection between the component
-// and the Streamlit app, and passes arguments from Python to the component.
-export default withStreamlitConnection(KetcherWidget);

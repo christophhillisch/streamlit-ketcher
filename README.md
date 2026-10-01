@@ -24,6 +24,11 @@ smile_code = st_ketcher(molecule)
 st.markdown(f"Smile code: ``{smile_code}``")
 ```
 
+> **One editor per page.** Ketcher's standalone mode supports a single working
+> editor per browser page. If an app calls `st_ketcher` more than once on the same
+> page, the first editor works and the others show a notice. Use separate pages
+> (`st.navigation`) for several editors.
+
 ## Development
 
 Requires Python 3.14+ and the Node.js version in [`.nvmrc`](.nvmrc).
@@ -44,7 +49,7 @@ streamlit run streamlit_app.py      # Try the component by hand
 
 The e2e screenshot baselines in `e2e/__snapshots__/chromium/linux` are
 Linux-only. Regenerate them on Linux with `pytest e2e --update-snapshots`.
-See [frontend/README.md](frontend/README.md) for frontend hot reload.
+See [frontend/README.md](frontend/README.md) for rebuilding the frontend on change.
 
 ## Demo
 
