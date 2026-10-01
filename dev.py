@@ -16,13 +16,11 @@ PYTHON_BIN = VENV_BIN_DIRECTORY / "python"
 REQUIRED_EXECUTABLES = ["node", "yarn"]
 
 
-def run_verbose(cmd_args, *args, **kwargs):
-    kwargs.setdefault("check", True)
-
+def run_verbose(cmd_args, *args, check=True, **kwargs):
     print(f"$ {shlex.join(cmd_args)}", flush=True)
     # Resolve wrappers such as yarn.cmd on Windows, which Popen does not find.
     executable = shutil.which(cmd_args[0]) or cmd_args[0]
-    subprocess.run([executable, *cmd_args[1:]], *args, **kwargs)
+    subprocess.run([executable, *cmd_args[1:]], *args, check=check, **kwargs)
 
 
 def ensure_environment():

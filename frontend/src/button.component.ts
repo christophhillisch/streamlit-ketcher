@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { transparentize } from "color2k";
-import { FixedTheme } from "./Theme";
+import { FixedTheme } from "./theme";
 
 interface ButtonProps {
   theme: FixedTheme;

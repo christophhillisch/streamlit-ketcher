@@ -1,8 +1,9 @@
 import re
 import unittest.mock
 
-from streamlit_ketcher import st_ketcher
 import pytest
+
+from streamlit_ketcher import st_ketcher
 
 
 @unittest.mock.patch("streamlit_ketcher._render_component")

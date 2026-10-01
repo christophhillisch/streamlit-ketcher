@@ -1,45 +1,42 @@
 import {
+  KetcherWidget,
+  IKetcherWidgetArgs,
+  IKetcherWidgetProps,
+} from "./ketcher-widget.component";
+import {
   FORMAT_MOLFILE,
   FORMAT_SMILES,
-  MyComponent,
-  MyComponentsArgs,
-  MyComponentsProps,
-} from "./MyComponent";
+  MoleculeFormatType,
+} from "./use-ketcher-editor.hook";
 
-import {
-  fireEvent,
-  queryByText,
-  render,
-  waitFor,
-} from "@testing-library/react";
+import { fireEvent, render, waitFor } from "@testing-library/react";
 import { darkTheme } from "./mocks";
-import { StreamlitKetcherEditorProps } from "./StreamlitKetcherEditor";
+import { StreamlitKetcherEditorProps } from "./streamlit-ketcher-editor.component";
 import { Ketcher } from "ketcher-core";
 import { Streamlit } from "streamlit-component-lib";
+import { useEffect, useState } from "react";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
-jest.mock("./StreamlitKetcherEditor", () => {
+vi.mock("./streamlit-ketcher-editor.component", () => {
   let currentMolecule: string | null = null;
-  let moleculeListener: ((mol: string) => null) | null = null;
+  let moleculeListener: ((mol: string) => void) | null = null;
   const mockKetcher = {
-    setMolecule: (mol: string) => {
+    setMolecule: async (mol: string) => {
       currentMolecule = mol;
-      if (moleculeListener) {
-        moleculeListener(mol);
-      }
+      moleculeListener?.(mol);
     },
     getSmiles: () => "SMILES:" + currentMolecule,
     getMolfile: () => "MOLFILE:" + currentMolecule,
   };
 
   return {
-    __esModule: true,
     default: (props: StreamlitKetcherEditorProps) => {
-      const [molecule, setMolecule] = require("react").useState();
+      const [, setMolecule] = useState<string>();
       moleculeListener = setMolecule;
-      require("react").useEffect(() => {
+      useEffect(() => {
         const timer = setTimeout(
           () => props.onInit!(mockKetcher as unknown as Ketcher),
-          0
+          0,
         );
 
         return () => clearTimeout(timer);
@@ -55,11 +52,13 @@ jest.mock("./StreamlitKetcherEditor", () => {
   };
 });
 
-function getArgs(args: Partial<MyComponentsArgs> = {}): MyComponentsArgs {
+function getArgs(args: Partial<IKetcherWidgetArgs> = {}): IKetcherWidgetArgs {
   return { molecule_format: "SMILES", height: 500, molecule: "CCO", ...args };
 }
 
-function getProps(props: Partial<MyComponentsProps> = {}): MyComponentsProps {
+function getProps(
+  props: Partial<IKetcherWidgetProps> = {},
+): IKetcherWidgetProps {
   return {
     args: getArgs(),
     disabled: true,
@@ -69,29 +68,29 @@ function getProps(props: Partial<MyComponentsProps> = {}): MyComponentsProps {
   };
 }
 
-describe("MyCompoennt", () => {
+describe("KetcherWidget", () => {
   beforeAll(() => {
-    jest.spyOn(Streamlit, "setFrameHeight");
-    jest.spyOn(Streamlit, "setComponentValue");
+    vi.spyOn(Streamlit, "setFrameHeight");
+    vi.spyOn(Streamlit, "setComponentValue");
   });
 
   it("should respect height of component and update height of the parent frame ", () => {
     const props = getProps({ args: getArgs({ height: 8000 }) });
-    render(<MyComponent {...props} />);
+    render(<KetcherWidget {...props} />);
 
-    expect(jest.mocked(Streamlit.setFrameHeight).mock.calls).toHaveLength(1);
+    expect(vi.mocked(Streamlit.setFrameHeight).mock.calls).toHaveLength(1);
   });
 
   it("component should be disabled initially", () => {
     const props = getProps({ args: getArgs({ height: 8000 }) });
 
-    const { getByTestId, getByRole } = render(<MyComponent {...props} />);
+    const { getByTestId, getByRole } = render(<KetcherWidget {...props} />);
 
     expect(
-      (getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled
+      (getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled,
     ).toEqual(true);
     expect(
-      (getByRole("button", { name: "Reset" }) as HTMLButtonElement).disabled
+      (getByRole("button", { name: "Reset" }) as HTMLButtonElement).disabled,
     ).toEqual(true);
     expect(getByTestId("loading-placeholder")).toBeVisible();
   });
@@ -100,16 +99,16 @@ describe("MyCompoennt", () => {
     const props = getProps({ args: getArgs({ height: 8000 }) });
 
     const { queryByTestId, getByRole, queryByText } = render(
-      <MyComponent {...props} />
+      <KetcherWidget {...props} />,
     );
     await waitFor(() => {
       expect(
-        (getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled
+        (getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled,
       ).toEqual(false);
     });
 
     expect(
-      (getByRole("button", { name: "Reset" }) as HTMLButtonElement).disabled
+      (getByRole("button", { name: "Reset" }) as HTMLButtonElement).disabled,
     ).toEqual(false);
     expect(queryByTestId("loading-placeholder")).toBeNull();
     expect(queryByText(/StreamlitKetcherEditor/)).not.toBeNull();
@@ -118,26 +117,53 @@ describe("MyCompoennt", () => {
   it("editor should have set molecule after ketcher initialization", async () => {
     const props = getProps({ args: getArgs({ molecule: "NEW_MOLECULE" }) });
 
-    const { getByRole, queryByText } = render(<MyComponent {...props} />);
+    const { getByRole, queryByText } = render(<KetcherWidget {...props} />);
     await waitFor(() => {
       expect(
-        (getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled
+        (getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled,
       ).toEqual(false);
     });
 
-    expect(queryByText(/molecule="NEW_MOLECULE"/)).not.toBeNull();
+    await waitFor(() =>
+      expect(queryByText(/molecule="NEW_MOLECULE"/)).not.toBeNull(),
+    );
+  });
+
+  it("editor should load a new molecule when the molecule arg changes", async () => {
+    const props = getProps({ args: getArgs({ molecule: "FIRST_MOLECULE" }) });
+
+    const { getByRole, queryByText, rerender } = render(
+      <KetcherWidget {...props} />,
+    );
+    await waitFor(() => {
+      expect(
+        (getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled,
+      ).toEqual(false);
+    });
+    rerender(
+      <KetcherWidget
+        {...props}
+        args={getArgs({ molecule: "SECOND_MOLECULE" })}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(queryByText(/molecule="SECOND_MOLECULE"/)).not.toBeNull();
+    });
   });
 
   it("reset buttons should set empty molecule", async () => {
     const props = getProps({ args: getArgs({ molecule: "USER_MOLECULE" }) });
 
-    const { getByRole, queryByText } = render(<MyComponent {...props} />);
+    const { getByRole, queryByText } = render(<KetcherWidget {...props} />);
     await waitFor(() => {
       expect(
-        (getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled
+        (getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled,
       ).toEqual(false);
     });
-    expect(queryByText(/molecule="USER_MOLECULE"/)).not.toBeNull();
+    await waitFor(() =>
+      expect(queryByText(/molecule="USER_MOLECULE"/)).not.toBeNull(),
+    );
     fireEvent.click(getByRole("button", { name: "Reset" }));
 
     await waitFor(() => {
@@ -145,7 +171,7 @@ describe("MyCompoennt", () => {
     });
   });
 
-  it.each([
+  it.each<[MoleculeFormatType, string]>([
     [FORMAT_SMILES, "CCO"],
     [FORMAT_MOLFILE, "CCCCC"],
   ])(
@@ -154,17 +180,13 @@ describe("MyCompoennt", () => {
       const props = getProps({
         args: getArgs({
           height: 800,
-          molecule_format: moleculeFormat as unknown as
-            | typeof FORMAT_SMILES
-            | typeof FORMAT_MOLFILE,
+          molecule_format: moleculeFormat,
           molecule,
         }),
       });
-      const setComponentValueMock = jest.mocked(
-        Streamlit.setComponentValue
-      ).mock;
+      const setComponentValueMock = vi.mocked(Streamlit.setComponentValue).mock;
 
-      const { getByRole } = render(<MyComponent {...props} />);
+      const { getByRole } = render(<KetcherWidget {...props} />);
       const buttonApply = getByRole("button", {
         name: "Apply",
       }) as HTMLButtonElement;
@@ -173,8 +195,8 @@ describe("MyCompoennt", () => {
 
       await waitFor(() => expect(setComponentValueMock.calls).toHaveLength(1));
       expect(setComponentValueMock.calls[0][0]).toEqual(
-        `${moleculeFormat}:${molecule}`
+        `${moleculeFormat}:${molecule}`,
       );
-    }
+    },
   );
 });

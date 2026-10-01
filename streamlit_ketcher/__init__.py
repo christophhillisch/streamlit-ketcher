@@ -1,17 +1,17 @@
+import os
 from enum import Enum
 from pathlib import Path
-from typing import Optional
-from typing_extensions import Literal
+from typing import Literal
+
 import streamlit.components.v1 as components
 
-# Running this module directly (`streamlit run streamlit_ketcher/__init__.py`)
-# serves the component from the frontend dev server instead of the build.
-_IS_DEV = "__main__" == __name__
+# Set to the Vite dev server URL (e.g. http://localhost:3000) to develop the
+# frontend with hot reload instead of serving the production build.
+_DEV_SERVER_URL = os.environ.get("STREAMLIT_KETCHER_DEV_SERVER_URL")
 
-if _IS_DEV:
+if _DEV_SERVER_URL:
     _render_component = components.declare_component(
-        "streamlit_ketcher",
-        url="http://localhost:3000",
+        "streamlit_ketcher", url=_DEV_SERVER_URL
     )
 else:
     build_dir = Path(__file__).parent / "frontend"
@@ -48,12 +48,12 @@ def _validate_height(height: int) -> None:
 
 
 def st_ketcher(
-    value: Optional[str] = "",
+    value: str | None = "",
     *,
     height: int = DEFAULT_HEIGHT,
     molecule_format: Literal["SMILES", "MOLFILE"] = MoleculeFormat.SMILES.value,
-    key: Optional[str] = None,
-) -> Optional[str]:
+    key: str | None = None,
+) -> str | None:
     """Create a new instance of the Ketcher editor.
 
     Parameters
@@ -90,33 +90,3 @@ def st_ketcher(
         key=key,
         default=value,
     )
-
-
-if _IS_DEV:
-    import streamlit as st
-
-    st.set_page_config(layout="wide")
-    st.title("`st_ketcher`")
-
-    st.header("Component with user input")
-    DEFAULT_MOL = (
-        r"C[N+]1=CC=C(/C2=C3\C=CC(=N3)/C(C3=CC=CC(C(N)=O)=C3)=C3/C=C/C(=C(\C4=CC=[N+]"
-        "(C)C=C4)C4=N/C(=C(/C5=CC=CC(C(N)=O)=C5)C5=CC=C2N5)C=C4)N3)C=C1"
-    )
-    with st.echo():
-        molecule = st.text_input("Molecule", DEFAULT_MOL)
-        smile_code = st_ketcher(molecule)
-        st.markdown(f"Smile code: ``{smile_code}``")
-
-    st.write("---")
-
-    st.header("Components with custom height")
-    with st.echo():
-        st_ketcher("CCO", height=400)
-        st_ketcher("CCO", height=800)
-
-    st.header("Components with `molfile` format")
-    with st.echo():
-        molfile = st_ketcher(molecule_format="MOLFILE")
-        st.markdown("molfile:")
-        st.code(molfile)

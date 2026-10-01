@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PYTHON_VERSION: "3.10"
+      PYTHON_VERSION: "3.14"
 
     permissions:
       # Additional permission needed to update preview app
@@ -24,10 +24,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -38,7 +38,7 @@ jobs:
             .pre-commit-config.yaml
 
       - name: Set up Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v7
         with:
           cache: 'yarn'
           node-version-file: '.nvmrc'
@@ -72,7 +72,7 @@ jobs:
         run: pytest e2e --reruns 5
 
       - name: Upload snapshots
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: ${{ always() }}
         with:
           name: Snapshots
@@ -88,14 +88,14 @@ jobs:
       - run: mkdir -p "$(yarn cache dir)"
 
       - name: Upload WHL file
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: WHL file
           path: dist/*.whl
           if-no-files-found: error
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         if: |
           github.repository == 'mik-laj/streamlit-ketcher' &&
           github.event_name == 'push' &&

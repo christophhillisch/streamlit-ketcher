@@ -6,13 +6,12 @@ import socket
 import subprocess
 import sys
 import time
-import typing
 from contextlib import closing
 from tempfile import TemporaryFile
 
 import requests
 
-LOGGER = logging.getLogger(__file__)
+LOGGER = logging.getLogger(__name__)
 
 
 SERVER_START_TIMEOUT_SECONDS = 60
@@ -54,7 +53,8 @@ class AsyncSubprocess:
         # file. We do this instead of using subprocess.PIPE (which causes the
         # Popen object to capture the output to its own internal buffer),
         # because large amounts of output can cause it to deadlock.
-        self._stdout_file = TemporaryFile("w+")
+        # Closed in stop(), so it cannot be scoped to a context manager.
+        self._stdout_file = TemporaryFile("w+")  # noqa: SIM115
         LOGGER.info("Running command: %s", shlex.join(self.args))
         self._proc = subprocess.Popen(
             self.args,
@@ -83,9 +83,7 @@ class AsyncSubprocess:
 
 
 class StreamlitRunner:
-    def __init__(
-        self, script_path: os.PathLike, server_port: typing.Optional[int] = None
-    ):
+    def __init__(self, script_path: os.PathLike, server_port: int | None = None):
         self._process = None
         self.server_port = server_port
         self.script_path = script_path

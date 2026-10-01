@@ -15,7 +15,7 @@ export const LoadingPlaceholder = styled.div<LoadingPlaceholderProps>(
     position: "absolute",
     width: "100%",
     zIndex: 1,
-  })
+  }),
 );
 
 export const EmptySpace = styled.div<LoadingPlaceholderProps>((props) => ({
