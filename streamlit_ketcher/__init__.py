@@ -31,6 +31,22 @@ SUPPORTED_MOLECULE_FORMATS = [
 DEFAULT_HEIGHT = 500
 
 
+def _validate_molecule_format(molecule_format: str) -> None:
+    """Raise ValueError if the molecule format is not supported."""
+    if molecule_format not in SUPPORTED_MOLECULE_FORMATS:
+        raise ValueError(
+            f"Unsupported value for molecule format: {molecule_format!r}. "
+            f"Supported values: {', '.join(SUPPORTED_MOLECULE_FORMATS)}"
+        )
+
+
+def _validate_height(height: int) -> None:
+    """Raise ValueError if the height is not a positive integer."""
+    is_integer = isinstance(height, int) and not isinstance(height, bool)
+    if not is_integer or height <= 0:
+        raise ValueError(f"Height must be a positive integer, got: {height!r}")
+
+
 def st_ketcher(
     value: Optional[str] = "",
     *,
@@ -62,13 +78,11 @@ def st_ketcher(
     Raises
     ------
     ValueError
-        If ``molecule_format`` is not one of the supported formats.
+        If ``molecule_format`` is not one of the supported formats, or
+        ``height`` is not a positive integer.
     """
-    if molecule_format not in SUPPORTED_MOLECULE_FORMATS:
-        raise ValueError(
-            f"Unsupported value for molecule format: {molecule_format!r}. "
-            f"Supported values: {', '.join(SUPPORTED_MOLECULE_FORMATS)}"
-        )
+    _validate_molecule_format(molecule_format)
+    _validate_height(height)
     return _render_component(
         molecule=value,
         height=height,

@@ -42,3 +42,14 @@ def test_invalid_molecule_format(mock_render_component, molecule_format):
     ):
         st_ketcher(molecule_format=molecule_format)
     mock_render_component.assert_not_called()
+
+
+@unittest.mock.patch("streamlit_ketcher._render_component")
+@pytest.mark.parametrize("height", [0, -100, 1.5, True, "500"])
+def test_invalid_height(mock_render_component, height):
+    with pytest.raises(
+        ValueError,
+        match=re.escape(f"Height must be a positive integer, got: {height!r}"),
+    ):
+        st_ketcher(height=height)
+    mock_render_component.assert_not_called()
