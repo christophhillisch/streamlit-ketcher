@@ -10,6 +10,7 @@ from e2e.e2e_utils import StreamlitRunner
 SELECTION_TOOL = "[data-testid=left-toolbar-buttons] [data-testid=select-rectangle]"
 MOLECULES_CANVAS = "[data-testid=ketcher-canvas][data-canvasmode=molecules-mode]"
 BENZENE_TEMPLATE = "[data-testid=template-0]"
+MACROMOLECULES_TOGGLE = "[data-testid=polymer-toggler]"
 
 ROOT_DIRECTORY = Path(__file__).parent.parent.absolute()
 BASIC_EXAMPLE_FILE = ROOT_DIRECTORY / "e2e" / "apps" / "basic_example.py"
@@ -26,6 +27,17 @@ def go_to_app(page: Page, streamlit_app: StreamlitRunner):
     page.goto(streamlit_app.server_url)
     # Wait for app to load
     expect(page.get_by_role("img", name="Running...")).to_be_hidden()
+
+
+def test_should_hide_macromolecules_toggle_by_default(page: Page):
+    frame_0 = page.frame_locator(
+        'iframe[title="streamlit_ketcher\\.streamlit_ketcher"]'
+    )
+
+    # Wait to Ketcher to load
+    frame_0.locator(SELECTION_TOOL).click()
+
+    expect(frame_0.locator(MACROMOLECULES_TOGGLE)).to_be_hidden()
 
 
 def test_should_return_user_input(page: Page, assert_snapshot):
