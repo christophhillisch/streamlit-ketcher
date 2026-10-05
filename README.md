@@ -24,6 +24,48 @@ smile_code = st_ketcher(molecule)
 st.markdown(f"Smile code: ``{smile_code}``")
 ```
 
+## Options
+
+| Argument          | Default    | Description                                                                 |
+| ----------------- | ---------- | --------------------------------------------------------------------------- |
+| `value`           | `""`       | Molecule shown when the editor first renders.                               |
+| `height`          | `500`      | Height of the editor in pixels.                                             |
+| `molecule_format` | `"SMILES"` | Format of the returned molecule: `"SMILES"` or `"MOLFILE"`.                 |
+| `macromolecules`  | `False`    | Show Ketcher's switch to the Macromolecules mode (RNA, DNA and peptides).   |
+| `key`             | `None`     | Unique key for the widget.                                                  |
+
+The Macromolecules mode is hidden by default, which matches the behaviour
+before Ketcher 3. Enable it with:
+
+```python
+smile_code = st_ketcher(molecule, macromolecules=True)
+```
+
+## Development
+
+Requires Python 3.14+ and the Node.js version in [`.nvmrc`](.nvmrc).
+
+```shell
+python -m venv venv
+source venv/bin/activate            # Windows: venv\Scripts\activate
+pip install -r dev-requirements.txt
+playwright install chromium
+
+cd frontend && yarn install && yarn build && cd ..
+
+pytest tests                        # Python unit tests
+cd frontend && yarn test --run      # Frontend unit tests
+pytest e2e                          # End-to-end tests in a real browser
+streamlit run streamlit_app.py      # Try the component by hand
+```
+
+The e2e screenshot baselines in `e2e/__snapshots__/chromium/linux` are
+Linux-only and must match the CI runner pixel for pixel. To regenerate them,
+run the *Continuous Integration* workflow from the Actions tab with
+*Regenerate the e2e screenshot baselines* ticked, then commit the images from
+its `Snapshots` artifact.
+See [frontend/README.md](frontend/README.md) for frontend hot reload.
+
 ## Demo
 
 [![Open in Streamlit][share_badge]][share_link]

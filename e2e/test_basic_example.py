@@ -1,10 +1,18 @@
 from pathlib import Path
 
 import pytest
-
 from playwright.sync_api import Page, expect
 
 from e2e.e2e_utils import StreamlitRunner
+
+# Ketcher 3 renders both the molecules and macromolecules editors in the DOM,
+# so selectors must target the visible (molecules) one.
+SELECTION_TOOL = "[data-testid=left-toolbar-buttons] [data-testid=select-rectangle]"
+MOLECULES_CANVAS = "[data-testid=ketcher-canvas][data-canvasmode=molecules-mode]"
+BENZENE_TEMPLATE = "[data-testid=template-0]"
+MACROMOLECULES_TOGGLE = "[data-testid=polymer-toggler]"
+CANVAS_ATOMS = f"{MOLECULES_CANVAS} [data-testid=atom]"
+ETHANOL_ATOM_COUNT = 3
 
 ROOT_DIRECTORY = Path(__file__).parent.parent.absolute()
 BASIC_EXAMPLE_FILE = ROOT_DIRECTORY / "e2e" / "apps" / "basic_example.py"
@@ -20,7 +28,18 @@ def streamlit_app():
 def go_to_app(page: Page, streamlit_app: StreamlitRunner):
     page.goto(streamlit_app.server_url)
     # Wait for app to load
-    page.get_by_role("img", name="Running...").is_hidden()
+    expect(page.get_by_role("img", name="Running...")).to_be_hidden()
+
+
+def test_should_hide_macromolecules_toggle_by_default(page: Page):
+    frame_0 = page.frame_locator(
+        'iframe[title="streamlit_ketcher\\.streamlit_ketcher"]'
+    )
+
+    # Wait to Ketcher to load
+    frame_0.locator(SELECTION_TOOL).click()
+
+    expect(frame_0.locator(MACROMOLECULES_TOGGLE)).to_be_hidden()
 
 
 def test_should_return_user_input(page: Page, assert_snapshot):
@@ -29,12 +48,12 @@ def test_should_return_user_input(page: Page, assert_snapshot):
     )
 
     # Wait to Ketcher to load
-    frame_0.get_by_role("button", name="Rectangle Selection (Esc)").click()
+    frame_0.locator(SELECTION_TOOL).click()
 
     # Draw benzene
-    frame_0.get_by_role("button", name="Benzene (T)").click()
-    frame_0.locator("svg").filter(has_text="Created with Raphaël 2.3.0").click()
-    frame_0.get_by_role("button", name="Rectangle Selection (Esc)").click()
+    frame_0.locator(BENZENE_TEMPLATE).click()
+    frame_0.locator(MOLECULES_CANVAS).click()
+    frame_0.locator(SELECTION_TOOL).click()
 
     # Assert benzene is visible
     assert_snapshot(
@@ -55,8 +74,9 @@ def test_should_render_user_input(page: Page, assert_snapshot):
         'iframe[title="streamlit_ketcher\\.streamlit_ketcher"]'
     )
 
-    # Wait to Ketcher to load
-    frame_0.get_by_role("button", name="Rectangle Selection (Esc)").click()
+    # Ketcher shows a loading spinner before it draws the molecule
+    expect(frame_0.locator(CANVAS_ATOMS)).to_have_count(ETHANOL_ATOM_COUNT)
+    frame_0.locator(SELECTION_TOOL).click()
     assert_snapshot(
         frame_0.locator("css=body").screenshot(), "test_should_render_user_input.png"
     )
@@ -66,12 +86,12 @@ def test_should_render_user_input(page: Page, assert_snapshot):
 
     # Clear output
     frame_0.get_by_role("button", name="Reset").click()
-    page.get_by_role("img", name="Running...").is_hidden()
+    expect(page.get_by_role("img", name="Running...")).to_be_hidden()
     # Wait for the value to be set in Ketcher.
-    frame_0.get_by_role("button", name="Rectangle Selection (Esc)").click()
+    frame_0.locator(SELECTION_TOOL).click()
     # Pass value to Streamlit
     frame_0.get_by_role("button", name="Apply").click()
-    page.get_by_role("img", name="Running...").is_hidden()
+    expect(page.get_by_role("img", name="Running...")).to_be_hidden()
 
     # Assert output is empty
     expect(page.get_by_text("Smile code")).to_have_text("Smile code: ````")

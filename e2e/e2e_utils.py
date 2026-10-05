@@ -6,31 +6,23 @@ import socket
 import subprocess
 import sys
 import time
-import typing
 from contextlib import closing
 from tempfile import TemporaryFile
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3 import Retry
 
-LOGGER = logging.getLogger(__file__)
+LOGGER = logging.getLogger(__name__)
 
 
-def _find_free_port():
-    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        s.bind(("", 0))  # 0 means that the OS chooses a random port
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        return int(s.getsockname()[1])  # [1] contains the randomly selected port number
+SERVER_START_TIMEOUT_SECONDS = 60
+HEALTH_CHECK_INTERVAL_SECONDS = 1
+PROCESS_STOP_TIMEOUT_SECONDS = 10
 
 
-def _create_http_session():
-    s = requests.Session()
-
-    retries = Retry(total=5, backoff_factor=0.1)
-    s.mount("http://", HTTPAdapter(max_retries=retries))
-
-    return s
+def _find_free_port() -> int:
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        sock.bind(("", 0))  # 0 means that the OS chooses a random port
+        return int(sock.getsockname()[1])
 
 
 class AsyncSubprocess:
@@ -43,22 +35,11 @@ class AsyncSubprocess:
         self._proc = None
         self._stdout_file = None
 
-    def terminate(self):
-        """Terminate the process and return its stdout/stderr in a string."""
-        if self._proc is not None:
-            self._proc.terminate()
-            self._proc.wait()
-            self._proc = None
-
-        # Read the stdout file and close it
-        stdout = None
-        if self._stdout_file is not None:
-            self._stdout_file.seek(0)
-            stdout = self._stdout_file.read()
-            self._stdout_file.close()
-            self._stdout_file = None
-
-        return stdout
+    def read_output(self) -> str:
+        if self._stdout_file is None:
+            return ""
+        self._stdout_file.seek(0)
+        return self._stdout_file.read()
 
     def __enter__(self):
         self.start()
@@ -72,7 +53,8 @@ class AsyncSubprocess:
         # file. We do this instead of using subprocess.PIPE (which causes the
         # Popen object to capture the output to its own internal buffer),
         # because large amounts of output can cause it to deadlock.
-        self._stdout_file = TemporaryFile("w+")
+        # Closed in stop(), so it cannot be scoped to a context manager.
+        self._stdout_file = TemporaryFile("w+")  # noqa: SIM115
         LOGGER.info("Running command: %s", shlex.join(self.args))
         self._proc = subprocess.Popen(
             self.args,
@@ -83,9 +65,17 @@ class AsyncSubprocess:
             env={**os.environ.copy(), **self.env} if self.env else None,
         )
 
+    def is_running(self) -> bool:
+        return self._proc is not None and self._proc.poll() is None
+
     def stop(self):
         if self._proc is not None:
             self._proc.terminate()
+            try:
+                self._proc.wait(timeout=PROCESS_STOP_TIMEOUT_SECONDS)
+            except subprocess.TimeoutExpired:
+                self._proc.kill()
+                self._proc.wait()
             self._proc = None
         if self._stdout_file is not None:
             self._stdout_file.close()
@@ -93,9 +83,7 @@ class AsyncSubprocess:
 
 
 class StreamlitRunner:
-    def __init__(
-        self, script_path: os.PathLike, server_port: typing.Optional[int] = None
-    ):
+    def __init__(self, script_path: os.PathLike, server_port: int | None = None):
         self._process = None
         self.server_port = server_port
         self.script_path = script_path
@@ -124,28 +112,28 @@ class StreamlitRunner:
         )
         self._process.start()
         if not self.is_server_running():
+            output = self._process.read_output()
             self._process.stop()
-            raise RuntimeError("Application failed to start")
+            raise RuntimeError(f"Application failed to start. Output:\n{output}")
 
     def stop(self):
-        self._process.stop()
+        if self._process is not None:
+            self._process.stop()
+            self._process = None
 
-    def is_server_running(self, timeout: int = 30):
+    def is_server_running(
+        self, timeout_seconds: float = SERVER_START_TIMEOUT_SECONDS
+    ) -> bool:
+        deadline = time.monotonic() + timeout_seconds
         with requests.Session() as http_session:
-            start_time = time.time()
-            print("Start loop: ", start_time)
-            while True:
+            while time.monotonic() < deadline and self._process.is_running():
                 with contextlib.suppress(requests.RequestException):
                     response = http_session.get(self.server_url + "/_stcore/health")
-                    print("response=", response)
                     if response.text == "ok":
-                        print("Return True")
                         return True
-                print("Waiting 3s")
-                time.sleep(3)
-                if time.time() - start_time > 60 * timeout:
-                    print("Return false")
-                    return False
+                LOGGER.info("Waiting for Streamlit server on %s", self.server_url)
+                time.sleep(HEALTH_CHECK_INTERVAL_SECONDS)
+        return False
 
     @property
     def server_url(self):

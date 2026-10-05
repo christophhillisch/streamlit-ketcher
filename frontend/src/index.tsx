@@ -1,11 +1,15 @@
-import * as React from "react";
-import * as ReactDOM from "react-dom";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 import "./index.css";
-import MyComponent from "./MyComponent";
+import KetcherWidget from "./ketcher-widget.component";
 
-ReactDOM.render(
-  <React.StrictMode>
-    <MyComponent />
-  </React.StrictMode>,
-  document.getElementById("root")
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  throw new Error("Root element #root not found in index.html");
+}
+
+createRoot(rootElement).render(
+  <StrictMode>
+    <KetcherWidget />
+  </StrictMode>,
 );

@@ -1,6 +1,10 @@
+import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
 import React from "react";
-import { EmptySpace, LoadingPlaceholder } from "./LoadingPlaceholder";
+import {
+  EmptySpace,
+  LoadingPlaceholder,
+} from "./loading-placeholder.component";
 
 describe("LoadingPlaceholder", () => {
   it("should render component", () => {

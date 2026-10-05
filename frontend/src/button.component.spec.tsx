@@ -1,5 +1,6 @@
+import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
-import { Button, ButtonContainer } from "./Button";
+import { Button, ButtonContainer } from "./button.component";
 import { darkTheme } from "./mocks";
 
 describe("Button", () => {
@@ -15,7 +16,7 @@ describe("ButtonContainer", () => {
       <ButtonContainer>
         <Button theme={darkTheme}>Text 1</Button>
         <Button theme={darkTheme}>Text 2</Button>
-      </ButtonContainer>
+      </ButtonContainer>,
     );
     expect(getAllByRole("button").length).toEqual(2);
   });

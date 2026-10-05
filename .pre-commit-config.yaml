@@ -1,28 +1,23 @@
 ---
-default_stages: [commit, push]
+default_stages: [pre-commit, pre-push]
 default_language_version:
   python: python3
-  node: 18.6.0
-minimum_pre_commit_version: '2.0.0'
+minimum_pre_commit_version: '3.2.0'
 repos:
   - repo: meta
     hooks:
       - id: check-hooks-apply
         name: Check if all hooks apply to the repository
-  - repo: https://github.com/psf/black
-    rev: 23.1.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.9
     hooks:
-      - id: black
-        name: Run black (Python formatter)
-        args: [--config=./pyproject.toml]
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    # Ruff version.
-    rev: 'v0.0.256'
-    hooks:
-      - id: ruff
+      - id: ruff-check
+        name: Run ruff (Python linter)
         args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+        name: Run ruff (Python formatter)
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
       - id: check-merge-conflict
         name: Check that merge conflicts are not being committed
@@ -48,7 +43,7 @@ repos:
           - --indent
           - "2"
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.29.0
+    rev: v1.38.0
     hooks:
       - id: yamllint
         name: Check YAML files with yamllint
@@ -56,6 +51,13 @@ repos:
         types: [yaml]
   - repo: local
     hooks:
+      - id: mypy
+        name: Type-check the Python package with mypy
+        entry: mypy
+        language: system
+        types: [python]
+        files: ^streamlit_ketcher/
+        pass_filenames: false
       - id: yarn-format
         name: Run formatted for frontend code
         entry: ./dev.py js-format
