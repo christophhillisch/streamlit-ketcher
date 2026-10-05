@@ -30,7 +30,7 @@ st.markdown(f"Smile code: ``{smile_code}``")
 | ----------------- | ---------- | --------------------------------------------------------------------------- |
 | `value`           | `""`       | Molecule shown when the editor first renders.                               |
 | `height`          | `500`      | Height of the editor in pixels.                                             |
-| `molecule_format` | `"SMILES"` | Format of the returned molecule: `"SMILES"` or `"MOLFILE"`.                 |
+| `molecule_format` | `"SMILES"` | Format of the returned molecule. See [Molecule formats](#molecule-formats). |
 | `macromolecules`  | `False`    | Show Ketcher's switch to the Macromolecules mode (RNA, DNA and peptides).   |
 | `key`             | `None`     | Unique key for the widget.                                                  |
 
@@ -39,6 +39,26 @@ before Ketcher 3. Enable it with:
 
 ```python
 smile_code = st_ketcher(molecule, macromolecules=True)
+```
+
+## Molecule formats
+
+`value` accepts any format Ketcher can read; Ketcher detects it automatically.
+`molecule_format` sets the format of the returned molecule:
+
+| `molecule_format` | Returned format                                        |
+| ----------------- | ------------------------------------------------------ |
+| `"SMILES"`        | Daylight SMILES                                        |
+| `"CXSMILES"`      | ChemAxon extended SMILES (keeps stereo, R-groups, ...) |
+| `"MOLFILE"`       | MDL Molfile                                            |
+| `"KET"`           | Ketcher's native JSON format                           |
+| `"INCHI"`         | IUPAC InChI                                            |
+| `"INCHI_KEY"`     | InChIKey (output only: it cannot be loaded back)       |
+| `"SMARTS"`        | Daylight SMARTS                                        |
+| `"RXN"`           | MDL Rxnfile (needs a reaction arrow on the canvas)     |
+
+```python
+inchi = st_ketcher("InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3", molecule_format="INCHI")
 ```
 
 ## Development

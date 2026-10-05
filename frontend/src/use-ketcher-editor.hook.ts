@@ -4,8 +4,22 @@ import { Ketcher } from "ketcher-core";
 
 export const FORMAT_SMILES = "SMILES";
 export const FORMAT_MOLFILE = "MOLFILE";
+export const FORMAT_KET = "KET";
+export const FORMAT_CXSMILES = "CXSMILES";
+export const FORMAT_INCHI = "INCHI";
+export const FORMAT_INCHI_KEY = "INCHI_KEY";
+export const FORMAT_SMARTS = "SMARTS";
+export const FORMAT_RXN = "RXN";
 
-export type MoleculeFormatType = typeof FORMAT_SMILES | typeof FORMAT_MOLFILE;
+export type MoleculeFormatType =
+  | typeof FORMAT_SMILES
+  | typeof FORMAT_MOLFILE
+  | typeof FORMAT_KET
+  | typeof FORMAT_CXSMILES
+  | typeof FORMAT_INCHI
+  | typeof FORMAT_INCHI_KEY
+  | typeof FORMAT_SMARTS
+  | typeof FORMAT_RXN;
 
 interface IKetcherEditor {
   isReady: boolean;
@@ -20,11 +34,26 @@ export const logKetcherError = (message: string): void =>
 const logError = (errorCode: string, error: unknown): void =>
   console.error(`[${errorCode}]`, error);
 
+const IS_EXTENDED_SMILES = true;
+
+const MOLECULE_SERIALIZERS: Record<
+  MoleculeFormatType,
+  (ketcher: Ketcher) => Promise<string>
+> = {
+  [FORMAT_SMILES]: (ketcher) => ketcher.getSmiles(),
+  [FORMAT_MOLFILE]: (ketcher) => ketcher.getMolfile(),
+  [FORMAT_KET]: (ketcher) => ketcher.getKet(),
+  [FORMAT_CXSMILES]: (ketcher) => ketcher.getSmiles(IS_EXTENDED_SMILES),
+  [FORMAT_INCHI]: (ketcher) => ketcher.getInchi(),
+  [FORMAT_INCHI_KEY]: (ketcher) => ketcher.getInChIKey(),
+  [FORMAT_SMARTS]: (ketcher) => ketcher.getSmarts(),
+  [FORMAT_RXN]: (ketcher) => ketcher.getRxn(),
+};
+
 const serializeMolecule = (
   ketcher: Ketcher,
   moleculeFormat: MoleculeFormatType,
-): Promise<string> =>
-  moleculeFormat === FORMAT_SMILES ? ketcher.getSmiles() : ketcher.getMolfile();
+): Promise<string> => MOLECULE_SERIALIZERS[moleculeFormat](ketcher);
 
 export const useKetcherEditor = (
   molecule: string | null,
