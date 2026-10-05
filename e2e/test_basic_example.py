@@ -11,6 +11,8 @@ SELECTION_TOOL = "[data-testid=left-toolbar-buttons] [data-testid=select-rectang
 MOLECULES_CANVAS = "[data-testid=ketcher-canvas][data-canvasmode=molecules-mode]"
 BENZENE_TEMPLATE = "[data-testid=template-0]"
 MACROMOLECULES_TOGGLE = "[data-testid=polymer-toggler]"
+CANVAS_ATOMS = f"{MOLECULES_CANVAS} [data-testid=atom]"
+ETHANOL_ATOM_COUNT = 3
 
 ROOT_DIRECTORY = Path(__file__).parent.parent.absolute()
 BASIC_EXAMPLE_FILE = ROOT_DIRECTORY / "e2e" / "apps" / "basic_example.py"
@@ -72,7 +74,8 @@ def test_should_render_user_input(page: Page, assert_snapshot):
         'iframe[title="streamlit_ketcher\\.streamlit_ketcher"]'
     )
 
-    # Wait to Ketcher to load
+    # Ketcher shows a loading spinner before it draws the molecule
+    expect(frame_0.locator(CANVAS_ATOMS)).to_have_count(ETHANOL_ATOM_COUNT)
     frame_0.locator(SELECTION_TOOL).click()
     assert_snapshot(
         frame_0.locator("css=body").screenshot(), "test_should_render_user_input.png"
