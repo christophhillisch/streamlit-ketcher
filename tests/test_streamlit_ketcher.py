@@ -1,9 +1,25 @@
 import re
 import unittest.mock
+from typing import get_args
 
 import pytest
 
-from streamlit_ketcher import st_ketcher
+from streamlit_ketcher import (
+    SUPPORTED_MOLECULE_FORMATS,
+    MoleculeFormatType,
+    st_ketcher,
+)
+
+ALL_MOLECULE_FORMATS = [
+    "SMILES",
+    "MOLFILE",
+    "KET",
+    "CXSMILES",
+    "INCHI",
+    "INCHI_KEY",
+    "SMARTS",
+    "RXN",
+]
 
 
 @unittest.mock.patch("streamlit_ketcher._render_component")
@@ -39,7 +55,7 @@ def test_render_all_parameters(mock_render_component):
 
 
 @unittest.mock.patch("streamlit_ketcher._render_component")
-@pytest.mark.parametrize("molecule_format", ["SMILES", "MOLFILE"])
+@pytest.mark.parametrize("molecule_format", ALL_MOLECULE_FORMATS)
 def test_render_molecule_format(mock_render_component, molecule_format):
     st_ketcher(molecule_format=molecule_format)
     mock_render_component.assert_called_once_with(
@@ -59,11 +75,16 @@ def test_invalid_molecule_format(mock_render_component, molecule_format):
         ValueError,
         match=re.escape(
             f"Unsupported value for molecule format: {molecule_format!r}. "
-            "Supported values: SMILES, MOLFILE"
+            "Supported values: SMILES, MOLFILE, KET, CXSMILES, INCHI, INCHI_KEY, "
+            "SMARTS, RXN"
         ),
     ):
         st_ketcher(molecule_format=molecule_format)
     mock_render_component.assert_not_called()
+
+
+def test_molecule_format_type_matches_supported_formats():
+    assert list(get_args(MoleculeFormatType)) == SUPPORTED_MOLECULE_FORMATS
 
 
 @unittest.mock.patch("streamlit_ketcher._render_component")

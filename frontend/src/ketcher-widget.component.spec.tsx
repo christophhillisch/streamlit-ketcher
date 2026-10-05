@@ -4,7 +4,13 @@ import {
   IKetcherWidgetProps,
 } from "./ketcher-widget.component";
 import {
+  FORMAT_CXSMILES,
+  FORMAT_INCHI,
+  FORMAT_INCHI_KEY,
+  FORMAT_KET,
   FORMAT_MOLFILE,
+  FORMAT_RXN,
+  FORMAT_SMARTS,
   FORMAT_SMILES,
   MoleculeFormatType,
 } from "./use-ketcher-editor.hook";
@@ -25,8 +31,14 @@ vi.mock("./streamlit-ketcher-editor.component", () => {
       currentMolecule = mol;
       moleculeListener?.(mol);
     },
-    getSmiles: () => "SMILES:" + currentMolecule,
+    getSmiles: (isExtended?: boolean) =>
+      (isExtended ? "CXSMILES:" : "SMILES:") + currentMolecule,
     getMolfile: () => "MOLFILE:" + currentMolecule,
+    getKet: () => "KET:" + currentMolecule,
+    getInchi: () => "INCHI:" + currentMolecule,
+    getInChIKey: () => "INCHI_KEY:" + currentMolecule,
+    getSmarts: () => "SMARTS:" + currentMolecule,
+    getRxn: () => "RXN:" + currentMolecule,
   };
 
   return {
@@ -202,8 +214,14 @@ describe("KetcherWidget", () => {
   it.each<[MoleculeFormatType, string]>([
     [FORMAT_SMILES, "CCO"],
     [FORMAT_MOLFILE, "CCCCC"],
+    [FORMAT_KET, "CCO"],
+    [FORMAT_CXSMILES, "CCO"],
+    [FORMAT_INCHI, "InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3"],
+    [FORMAT_INCHI_KEY, "CCO"],
+    [FORMAT_SMARTS, "[#6]-[#6]"],
+    [FORMAT_RXN, "CCO>>CC=O"],
   ])(
-    "apply buttons should set molecule to parent frame",
+    "apply button should set the %s molecule to parent frame",
     async (moleculeFormat, molecule) => {
       const props = getProps({
         args: getArgs({
@@ -214,11 +232,16 @@ describe("KetcherWidget", () => {
       });
       const setComponentValueMock = vi.mocked(Streamlit.setComponentValue).mock;
 
-      const { getByRole } = render(<KetcherWidget {...props} />);
+      const { getByRole, queryByText } = render(<KetcherWidget {...props} />);
       const buttonApply = getByRole("button", {
         name: "Apply",
       }) as HTMLButtonElement;
       await waitFor(() => expect(buttonApply.disabled).toEqual(false));
+      await waitFor(() =>
+        expect(
+          queryByText(`molecule=${JSON.stringify(molecule)}`, { exact: false }),
+        ).not.toBeNull(),
+      );
       fireEvent.click(buttonApply);
 
       await waitFor(() => expect(setComponentValueMock.calls).toHaveLength(1));

@@ -23,6 +23,17 @@ else:
 class MoleculeFormat(Enum):
     SMILES = "SMILES"
     MOLFILE = "MOLFILE"
+    KET = "KET"
+    CXSMILES = "CXSMILES"
+    INCHI = "INCHI"
+    INCHI_KEY = "INCHI_KEY"
+    SMARTS = "SMARTS"
+    RXN = "RXN"
+
+
+MoleculeFormatType = Literal[
+    "SMILES", "MOLFILE", "KET", "CXSMILES", "INCHI", "INCHI_KEY", "SMARTS", "RXN"
+]
 
 
 SUPPORTED_MOLECULE_FORMATS = [
@@ -58,7 +69,7 @@ def st_ketcher(
     value: str | None = "",
     *,
     height: int = DEFAULT_HEIGHT,
-    molecule_format: Literal["SMILES", "MOLFILE"] = MoleculeFormat.SMILES.value,
+    molecule_format: MoleculeFormatType = MoleculeFormat.SMILES.value,
     macromolecules: bool = False,
     key: str | None = None,
 ) -> str | None:
@@ -71,8 +82,11 @@ def st_ketcher(
         Empty string by default.
     height: int
         The height of the editor expressed in pixels.
-    molecule_format: "SMILES" or "MOLFILE"
-        The format of molecule representation.
+    molecule_format: str
+        The format of the returned molecule: "SMILES", "MOLFILE", "KET",
+        "CXSMILES", "INCHI", "INCHI_KEY", "SMARTS" or "RXN". "INCHI_KEY" is
+        output only: an InChIKey cannot be loaded back into the editor.
+        "RXN" requires a reaction arrow on the canvas.
     macromolecules: bool
         Whether to show Ketcher's switch to the Macromolecules mode
         (RNA, DNA and peptides). False by default.
