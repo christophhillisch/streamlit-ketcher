@@ -45,7 +45,10 @@ vi.mock("./streamlit-ketcher-editor.component", () => {
       return (
         <div>
           StreamlitKetcherEditor [
-          {"molecule=" + JSON.stringify(currentMolecule)}]
+          {"molecule=" + JSON.stringify(currentMolecule)}
+          {" disableMacromoleculesEditor=" +
+            String(props.disableMacromoleculesEditor)}
+          ]
         </div>
       );
     },
@@ -53,7 +56,13 @@ vi.mock("./streamlit-ketcher-editor.component", () => {
 });
 
 function getArgs(args: Partial<IKetcherWidgetArgs> = {}): IKetcherWidgetArgs {
-  return { molecule_format: "SMILES", height: 500, molecule: "CCO", ...args };
+  return {
+    molecule_format: "SMILES",
+    height: 500,
+    molecule: "CCO",
+    macromolecules: false,
+    ...args,
+  };
 }
 
 function getProps(
@@ -170,6 +179,25 @@ describe("KetcherWidget", () => {
       expect(queryByText(/molecule=""/)).not.toBeNull();
     });
   });
+
+  it.each<[boolean, boolean]>([
+    [false, true],
+    [true, false],
+  ])(
+    "macromolecules=%s should pass disableMacromoleculesEditor=%s to the editor",
+    (macromolecules, isMacromoleculesEditorDisabled) => {
+      const props = getProps({ args: getArgs({ macromolecules }) });
+
+      const { queryByText } = render(<KetcherWidget {...props} />);
+
+      expect(
+        queryByText(
+          `disableMacromoleculesEditor=${isMacromoleculesEditorDisabled}`,
+          { exact: false },
+        ),
+      ).not.toBeNull();
+    },
+  );
 
   it.each<[MoleculeFormatType, string]>([
     [FORMAT_SMILES, "CCO"],

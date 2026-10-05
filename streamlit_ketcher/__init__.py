@@ -47,11 +47,19 @@ def _validate_height(height: int) -> None:
         raise ValueError(f"Height must be a positive integer, got: {height!r}")
 
 
+def _validate_macromolecules(macromolecules: bool) -> None:
+    """Raise ValueError if macromolecules is not a boolean."""
+    if not isinstance(macromolecules, bool):
+        # ValueError, not TypeError, to match the other st_ketcher validators.
+        raise ValueError(f"Macromolecules must be a boolean, got: {macromolecules!r}")  # noqa: TRY004
+
+
 def st_ketcher(
     value: str | None = "",
     *,
     height: int = DEFAULT_HEIGHT,
     molecule_format: Literal["SMILES", "MOLFILE"] = MoleculeFormat.SMILES.value,
+    macromolecules: bool = False,
     key: str | None = None,
 ) -> str | None:
     """Create a new instance of the Ketcher editor.
@@ -65,6 +73,9 @@ def st_ketcher(
         The height of the editor expressed in pixels.
     molecule_format: "SMILES" or "MOLFILE"
         The format of molecule representation.
+    macromolecules: bool
+        Whether to show Ketcher's switch to the Macromolecules mode
+        (RNA, DNA and peptides). False by default.
     key: str or None
         An optional key that uniquely identifies this component. If this is
         None, and the component's arguments are changed, the component will
@@ -79,14 +90,17 @@ def st_ketcher(
     ------
     ValueError
         If ``molecule_format`` is not one of the supported formats, or
-        ``height`` is not a positive integer.
+        ``height`` is not a positive integer, or ``macromolecules`` is not
+        a boolean.
     """
     _validate_molecule_format(molecule_format)
     _validate_height(height)
+    _validate_macromolecules(macromolecules)
     molecule: str | None = _render_component(
         molecule=value,
         height=height,
         molecule_format=molecule_format,
+        macromolecules=macromolecules,
         key=key,
         default=value,
     )

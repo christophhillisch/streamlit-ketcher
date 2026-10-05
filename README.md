@@ -24,6 +24,23 @@ smile_code = st_ketcher(molecule)
 st.markdown(f"Smile code: ``{smile_code}``")
 ```
 
+## Options
+
+| Argument          | Default    | Description                                                                 |
+| ----------------- | ---------- | --------------------------------------------------------------------------- |
+| `value`           | `""`       | Molecule shown when the editor first renders.                               |
+| `height`          | `500`      | Height of the editor in pixels.                                             |
+| `molecule_format` | `"SMILES"` | Format of the returned molecule: `"SMILES"` or `"MOLFILE"`.                 |
+| `macromolecules`  | `False`    | Show Ketcher's switch to the Macromolecules mode (RNA, DNA and peptides).   |
+| `key`             | `None`     | Unique key for the widget.                                                  |
+
+The Macromolecules mode is hidden by default, which matches the behaviour
+before Ketcher 3. Enable it with:
+
+```python
+smile_code = st_ketcher(molecule, macromolecules=True)
+```
+
 ## Development
 
 Requires Python 3.14+ and the Node.js version in [`.nvmrc`](.nvmrc).

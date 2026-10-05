@@ -26,6 +26,7 @@ export interface IKetcherWidgetArgs {
   molecule: string | null;
   height: number;
   molecule_format: MoleculeFormatType;
+  macromolecules: boolean;
 }
 
 export interface IKetcherWidgetProps extends ComponentProps {
@@ -34,7 +35,12 @@ export interface IKetcherWidgetProps extends ComponentProps {
 
 export const KetcherWidget = function (props: IKetcherWidgetProps) {
   const editorRef = useRef<HTMLDivElement>(null);
-  const { molecule, molecule_format: moleculeFormat, height } = props.args;
+  const {
+    molecule,
+    molecule_format: moleculeFormat,
+    height,
+    macromolecules,
+  } = props.args;
   const theme = props.theme as FixedTheme;
   const { isReady, handleInit, handleReset, handleApply } = useKetcherEditor(
     molecule,
@@ -54,6 +60,7 @@ export const KetcherWidget = function (props: IKetcherWidgetProps) {
       <Suspense fallback={<EmptySpace height={height} />}>
         <StreamlitKetcherEditor
           height={height}
+          disableMacromoleculesEditor={!macromolecules}
           errorHandler={logKetcherError}
           onInit={handleInit}
         />
