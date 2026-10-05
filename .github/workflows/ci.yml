@@ -6,6 +6,12 @@ on:  # yamllint disable-line rule:truthy
     branches: ["main"]
   pull_request:
     branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      update-snapshots:
+        description: "Regenerate the e2e screenshot baselines"
+        type: boolean
+        default: false
 
 env:
   FORCE_COLOR: true
@@ -69,7 +75,9 @@ jobs:
         run: ./dev.py js-build
 
       - name: Run e2e tests
-        run: pytest e2e --reruns 5 --update-snapshots
+        run: >-
+          pytest e2e --reruns 5
+          ${{ inputs.update-snapshots && '--update-snapshots' || '' }}
 
       - name: Upload snapshots
         uses: actions/upload-artifact@v7

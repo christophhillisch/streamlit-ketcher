@@ -43,7 +43,10 @@ streamlit run streamlit_app.py      # Try the component by hand
 ```
 
 The e2e screenshot baselines in `e2e/__snapshots__/chromium/linux` are
-Linux-only. Regenerate them on Linux with `pytest e2e --update-snapshots`.
+Linux-only and must match the CI runner pixel for pixel. To regenerate them,
+run the *Continuous Integration* workflow from the Actions tab with
+*Regenerate the e2e screenshot baselines* ticked, then commit the images from
+its `Snapshots` artifact.
 See [frontend/README.md](frontend/README.md) for frontend hot reload.
 
 ## Demo
