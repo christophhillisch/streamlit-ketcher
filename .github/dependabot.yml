@@ -2,6 +2,9 @@
 # package ecosystems to update and where the package manifests are located.
 # Please see the documentation for all configuration options:
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+#
+# Groups bundle packages that must move together; updated separately, each
+# PR would fail CI on its own.
 ---
 version: 2
 updates:
@@ -25,6 +28,24 @@ updates:
       emotion:
         patterns:
           - "@emotion/*"
+      # @vitejs/plugin-react and Vitest peer-depend on specific Vite majors.
+      vite:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "vitest"
+          - "@vitest/*"
+      # On a React major bump, also update the `streamlit-component-lib/react*`
+      # entries in `resolutions` in frontend/package.json by hand.
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      testing-library:
+        patterns:
+          - "@testing-library/*"
 
   - package-ecosystem: "pip"
     labels:
@@ -36,3 +57,20 @@ updates:
       streamlit:
         patterns:
           - "streamlit*"
+      pytest:
+        patterns:
+          - "pytest*"
+          - "playwright"
+
+  # Bumps the `rev` of each hook in .pre-commit-config.yaml;
+  # local and meta hooks are skipped.
+  - package-ecosystem: "pre-commit"
+    labels:
+      - "dependencies"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      pre-commit-hooks:
+        patterns:
+          - "*"
