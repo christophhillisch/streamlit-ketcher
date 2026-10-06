@@ -1,5 +1,6 @@
 import { ComponentProps } from "react";
-import { StandaloneStructServiceProvider } from "ketcher-standalone";
+// Loads the Indigo engine as a separate, cacheable .wasm file instead of base64.
+import { StandaloneStructServiceProvider } from "ketcher-standalone/dist/binaryWasm";
 import { Editor as KetcherEditor } from "ketcher-react";
 import styled from "@emotion/styled";
 import { Ketcher } from "ketcher-core";

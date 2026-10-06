@@ -7,7 +7,7 @@ const EDITOR_HEIGHT = 500;
 const { editorMock } = vi.hoisted(() => ({ editorMock: vi.fn(() => null) }));
 
 vi.mock("ketcher-react", () => ({ Editor: editorMock }));
-vi.mock("ketcher-standalone", () => ({
+vi.mock("ketcher-standalone/dist/binaryWasm", () => ({
   StandaloneStructServiceProvider: class {},
 }));
 
