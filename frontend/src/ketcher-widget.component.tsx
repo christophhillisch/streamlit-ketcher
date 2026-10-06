@@ -7,6 +7,7 @@ import { lazy, Suspense, useEffect, useRef } from "react";
 import "ketcher-react/dist/index.css";
 import useResizeObserver from "@react-hook/resize-observer";
 import { Button, ButtonContainer } from "./button.component";
+import { EditorFrame } from "./editor-frame.component";
 import {
   EmptySpace,
   LoadingPlaceholder,
@@ -55,19 +56,25 @@ export const KetcherWidget = function (props: IKetcherWidgetProps) {
 
   return (
     <div ref={editorRef}>
-      {!isReady && (
-        <LoadingPlaceholder data-testid="loading-placeholder" height={height}>
-          Loading...
-        </LoadingPlaceholder>
-      )}
-      <Suspense fallback={<EmptySpace height={height} />}>
-        <StreamlitKetcherEditor
-          height={height}
-          disableMacromoleculesEditor={!macromolecules}
-          errorHandler={logKetcherError}
-          onInit={handleInit}
-        />
-      </Suspense>
+      <EditorFrame theme={theme} data-testid="editor-frame">
+        {!isReady && (
+          <LoadingPlaceholder
+            data-testid="loading-placeholder"
+            height={height}
+            theme={theme}
+          >
+            Loading...
+          </LoadingPlaceholder>
+        )}
+        <Suspense fallback={<EmptySpace height={height} />}>
+          <StreamlitKetcherEditor
+            height={height}
+            disableMacromoleculesEditor={!macromolecules}
+            errorHandler={logKetcherError}
+            onInit={handleInit}
+          />
+        </Suspense>
+      </EditorFrame>
       <ButtonContainer>
         <Button theme={theme} onClick={handleReset} disabled={!isReady}>
           Reset
