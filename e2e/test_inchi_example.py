@@ -3,10 +3,9 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Page, expect
 
+from e2e.e2e_selectors import CANVAS_ATOMS, KETCHER_IFRAME
 from e2e.e2e_utils import StreamlitRunner
 
-MOLECULES_CANVAS = "[data-testid=ketcher-canvas][data-canvasmode=molecules-mode]"
-CANVAS_ATOMS = f"{MOLECULES_CANVAS} [data-testid=atom]"
 ETHANOL_ATOM_COUNT = 3
 ETHANOL_INCHI = "InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3"
 
@@ -31,9 +30,7 @@ def test_should_round_trip_inchi(page: Page):
     page.get_by_role("textbox", name="Molecule").fill(ETHANOL_INCHI)
     page.get_by_role("textbox", name="Molecule").press("Enter")
 
-    frame_0 = page.frame_locator(
-        r'iframe[title="streamlit_ketcher\.streamlit_ketcher"]'
-    )
+    frame_0 = page.frame_locator(KETCHER_IFRAME)
 
     # Ketcher parses the InChI and draws ethanol
     expect(frame_0.locator(CANVAS_ATOMS)).to_have_count(ETHANOL_ATOM_COUNT)

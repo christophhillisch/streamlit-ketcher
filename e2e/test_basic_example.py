@@ -3,15 +3,16 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Page, expect
 
+from e2e.e2e_selectors import (
+    BENZENE_TEMPLATE,
+    CANVAS_ATOMS,
+    KETCHER_IFRAME,
+    MACROMOLECULES_TOGGLE,
+    MOLECULES_CANVAS,
+    SELECTION_TOOL,
+)
 from e2e.e2e_utils import StreamlitRunner
 
-# Ketcher 3 renders both the molecules and macromolecules editors in the DOM,
-# so selectors must target the visible (molecules) one.
-SELECTION_TOOL = "[data-testid=left-toolbar-buttons] [data-testid=select-rectangle]"
-MOLECULES_CANVAS = "[data-testid=ketcher-canvas][data-canvasmode=molecules-mode]"
-BENZENE_TEMPLATE = "[data-testid=template-0]"
-MACROMOLECULES_TOGGLE = "[data-testid=polymer-toggler]"
-CANVAS_ATOMS = f"{MOLECULES_CANVAS} [data-testid=atom]"
 ETHANOL_ATOM_COUNT = 3
 
 ROOT_DIRECTORY = Path(__file__).parent.parent.absolute()
@@ -32,9 +33,7 @@ def go_to_app(page: Page, streamlit_app: StreamlitRunner):
 
 
 def test_should_hide_macromolecules_toggle_by_default(page: Page):
-    frame_0 = page.frame_locator(
-        'iframe[title="streamlit_ketcher\\.streamlit_ketcher"]'
-    )
+    frame_0 = page.frame_locator(KETCHER_IFRAME)
 
     # Wait to Ketcher to load
     frame_0.locator(SELECTION_TOOL).click()
@@ -43,9 +42,7 @@ def test_should_hide_macromolecules_toggle_by_default(page: Page):
 
 
 def test_should_return_user_input(page: Page, assert_snapshot):
-    frame_0 = page.frame_locator(
-        'iframe[title="streamlit_ketcher\\.streamlit_ketcher"]'
-    )
+    frame_0 = page.frame_locator(KETCHER_IFRAME)
 
     # Wait to Ketcher to load
     frame_0.locator(SELECTION_TOOL).click()
@@ -71,9 +68,7 @@ def test_should_render_user_input(page: Page, assert_snapshot):
     page.get_by_role("textbox", name="Molecule").fill("CCO")
     page.get_by_role("textbox", name="Molecule").press("Enter")
 
-    frame_0 = page.frame_locator(
-        'iframe[title="streamlit_ketcher\\.streamlit_ketcher"]'
-    )
+    frame_0 = page.frame_locator(KETCHER_IFRAME)
 
     # Ketcher shows a loading spinner before it draws the molecule
     expect(frame_0.locator(CANVAS_ATOMS)).to_have_count(ETHANOL_ATOM_COUNT)
