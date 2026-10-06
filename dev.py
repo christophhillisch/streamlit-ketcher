@@ -155,9 +155,7 @@ def get_parser():
     subparsers.add_parser("js-build", help="Build frontend.").set_defaults(
         func=cmd_js_build
     )
-    js_format_parser = subparsers.add_parser(
-        "js-format", help="Format frontend files"
-    )
+    js_format_parser = subparsers.add_parser("js-format", help="Format frontend files")
     js_format_parser.add_argument(
         "files", nargs=argparse.REMAINDER, help="Files to check"
     )

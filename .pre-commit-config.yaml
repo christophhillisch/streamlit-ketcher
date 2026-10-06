@@ -68,7 +68,13 @@ repos:
         name: Lint frontend code with ESLint
         entry: ./dev.py js-lint
         language: system
-        files: ^frontend/(src/.+\.[jt]sx?|eslint\.config\.js|package\.json|tsconfig\.json)$
+        files: |
+          (?x)^frontend/(
+            src/.+\.[jt]sx?|
+            eslint\.config\.js|
+            package\.json|
+            tsconfig\.json
+          )$
         pass_filenames: false
       - id: license-disclaimer
         name: Generate NOTICES
