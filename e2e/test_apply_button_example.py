@@ -3,10 +3,9 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Page, expect
 
+from e2e.e2e_selectors import CANVAS_ATOMS, KETCHER_IFRAME
 from e2e.e2e_utils import StreamlitRunner
 
-MOLECULES_CANVAS = "[data-testid=ketcher-canvas][data-canvasmode=molecules-mode]"
-CANVAS_ATOMS = f"{MOLECULES_CANVAS} [data-testid=atom]"
 ETHANOL_ATOM_COUNT = 3
 
 ROOT_DIRECTORY = Path(__file__).parent.parent.absolute()
@@ -27,9 +26,7 @@ def go_to_app(page: Page, streamlit_app: StreamlitRunner):
 
 
 def test_should_send_changes_only_on_apply(page: Page):
-    frame_0 = page.frame_locator(
-        r'iframe[title="streamlit_ketcher\.streamlit_ketcher"]'
-    )
+    frame_0 = page.frame_locator(KETCHER_IFRAME)
     expect(frame_0.locator(CANVAS_ATOMS)).to_have_count(ETHANOL_ATOM_COUNT)
 
     frame_0.get_by_role("button", name="Reset").click()

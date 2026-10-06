@@ -46,5 +46,5 @@ def test_should_update_mounted_editor(page: Page):
     enter_molecule(page, "c1ccccc1")
     expect(frame_0.locator(CANVAS_ATOMS)).to_have_count(BENZENE_ATOM_COUNT)
 
-    frame_0.get_by_role("button", name="Apply").click()
+    # Live update sends the new molecule without an Apply button
     expect(page.get_by_text("Smile code")).to_have_text("Smile code: c1ccccc1")

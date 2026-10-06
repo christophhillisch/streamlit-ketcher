@@ -7,3 +7,4 @@ MOLECULES_CANVAS = "[data-testid=ketcher-canvas][data-canvasmode=molecules-mode]
 BENZENE_TEMPLATE = "[data-testid=template-0]"
 MACROMOLECULES_TOGGLE = "[data-testid=polymer-toggler]"
 CANVAS_ATOMS = f"{MOLECULES_CANVAS} [data-testid=atom]"
+MOLECULES_UNDO_BUTTON = "[data-testid=undo]:visible"

@@ -9,6 +9,7 @@ from e2e.e2e_selectors import (
     KETCHER_IFRAME,
     MACROMOLECULES_TOGGLE,
     MOLECULES_CANVAS,
+    MOLECULES_UNDO_BUTTON,
     SELECTION_TOOL,
 )
 from e2e.e2e_utils import StreamlitRunner
@@ -72,7 +73,9 @@ def test_should_render_user_input(page: Page, assert_snapshot):
 
     # Ketcher shows a loading spinner before it draws the molecule
     expect(frame_0.locator(CANVAS_ATOMS)).to_have_count(ETHANOL_ATOM_COUNT)
-    frame_0.locator(SELECTION_TOOL).click()
+    # Ketcher updates its toolbar after drawing the molecule
+    expect(frame_0.locator(MOLECULES_UNDO_BUTTON)).to_be_enabled()
+    # Clicking the already active selection tool would open its sub-menu
     assert_snapshot(
         frame_0.locator("css=body").screenshot(), "test_should_render_user_input.png"
     )
