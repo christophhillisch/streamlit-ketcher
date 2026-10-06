@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Streamlit } from "streamlit-component-lib";
 import { Ketcher } from "ketcher-core";
 import { useLiveUpdate } from "./use-live-update.hook";
@@ -68,13 +68,17 @@ const useMoleculeLoader = (
   molecule: string | null,
   shouldSkipMolecule: (molecule: string | null) => boolean,
 ): void => {
+  // Ketcher runs overlapping setMolecule calls concurrently and an older load
+  // can win, so each load waits for the previous one.
+  const previousLoadRef = useRef<Promise<void>>(Promise.resolve());
+
   useEffect(() => {
     // Python reruns with the value just sent; reloading it would reset the canvas.
     if (!ketcher || shouldSkipMolecule(molecule)) {
       return;
     }
-    ketcher
-      .setMolecule(molecule ?? "")
+    previousLoadRef.current = previousLoadRef.current
+      .then(() => ketcher.setMolecule(molecule ?? ""))
       .catch((error: unknown) => logError("LOAD_MOLECULE_FAILED", error));
   }, [ketcher, molecule, shouldSkipMolecule]);
 };
