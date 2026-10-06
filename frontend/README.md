@@ -18,6 +18,14 @@ and tested with [Vitest](https://vitest.dev).
 | `yarn typecheck` | Type-check with TypeScript                                          |
 | `yarn build`     | Type-check and build into `../streamlit_ketcher/frontend`           |
 | `yarn format`    | Format sources with Prettier                                        |
+| `yarn lint:js`   | Lint with ESLint (typescript-eslint and React hooks rules)          |
+
+## TypeScript 7 and ESLint
+
+`tsc` is TypeScript 7, which ships no JavaScript API. typescript-eslint needs
+that API, so `typescript` is aliased to `@typescript/typescript6` and TypeScript 7
+is installed as `@typescript/native`, which still provides the `tsc` binary.
+Remove the alias once typescript-eslint supports TypeScript 7.
 
 ## Developing against a Streamlit app
 

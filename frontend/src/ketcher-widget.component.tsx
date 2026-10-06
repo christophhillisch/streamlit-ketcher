@@ -1,8 +1,4 @@
-import {
-  ComponentProps,
-  Streamlit,
-  withStreamlitConnection,
-} from "streamlit-component-lib";
+import { ComponentProps, Streamlit } from "streamlit-component-lib";
 import { lazy, Suspense, useEffect, useRef } from "react";
 import "ketcher-react/dist/index.css";
 import useResizeObserver from "@react-hook/resize-observer";
@@ -88,7 +84,3 @@ export const KetcherWidget = function (props: IKetcherWidgetProps) {
     </div>
   );
 };
-
-// "withStreamlitConnection" bootstraps the connection between the component
-// and the Streamlit app, and passes arguments from Python to the component.
-export default withStreamlitConnection(KetcherWidget);

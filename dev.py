@@ -113,6 +113,10 @@ def cmd_js_format(args):
     run_verbose(["yarn", "prettier", "--write", *files], cwd=FRONTEND_DIRECTORY)
 
 
+def cmd_js_lint(args):
+    run_verbose(["yarn", "lint:js"], cwd=FRONTEND_DIRECTORY)
+
+
 def cmd_js_build(args):
     run_verbose(["yarn", "build"], cwd=FRONTEND_DIRECTORY)
 
@@ -151,11 +155,16 @@ def get_parser():
     subparsers.add_parser("js-build", help="Build frontend.").set_defaults(
         func=cmd_js_build
     )
-    js_lint_parser = subparsers.add_parser("js-format", help="Format frontend files")
-    js_lint_parser.add_argument(
+    js_format_parser = subparsers.add_parser(
+        "js-format", help="Format frontend files"
+    )
+    js_format_parser.add_argument(
         "files", nargs=argparse.REMAINDER, help="Files to check"
     )
-    js_lint_parser.set_defaults(func=cmd_js_format)
+    js_format_parser.set_defaults(func=cmd_js_format)
+    subparsers.add_parser("js-lint", help="Lint frontend code.").set_defaults(
+        func=cmd_js_lint
+    )
     subparsers.add_parser("js-test", help="Run unit tests for frontend.").set_defaults(
         func=lambda _: run_verbose(["yarn", "test"], cwd=FRONTEND_DIRECTORY)
     )

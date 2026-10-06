@@ -55,30 +55,30 @@ vi.mock("./streamlit-ketcher-editor.component", () => {
     getRxn: () => "RXN:" + currentMolecule,
   };
 
-  return {
-    default: (props: StreamlitKetcherEditorProps) => {
-      const [, setMolecule] = useState<string>();
-      moleculeListener = setMolecule;
-      useEffect(() => {
-        const timer = setTimeout(
-          () => props.onInit!(mockKetcher as unknown as Ketcher),
-          0,
-        );
-
-        return () => clearTimeout(timer);
-      }, []);
-
-      return (
-        <div>
-          StreamlitKetcherEditor [
-          {"molecule=" + JSON.stringify(currentMolecule)}
-          {" disableMacromoleculesEditor=" +
-            String(props.disableMacromoleculesEditor)}
-          ]
-        </div>
+  const MockStreamlitKetcherEditor = (props: StreamlitKetcherEditorProps) => {
+    const { onInit } = props;
+    const [, setMolecule] = useState<string>();
+    moleculeListener = setMolecule;
+    useEffect(() => {
+      const timer = setTimeout(
+        () => onInit!(mockKetcher as unknown as Ketcher),
+        0,
       );
-    },
+
+      return () => clearTimeout(timer);
+    }, [onInit]);
+
+    return (
+      <div>
+        StreamlitKetcherEditor [{"molecule=" + JSON.stringify(currentMolecule)}
+        {" disableMacromoleculesEditor=" +
+          String(props.disableMacromoleculesEditor)}
+        ]
+      </div>
+    );
   };
+
+  return { default: MockStreamlitKetcherEditor };
 });
 
 function getArgs(args: Partial<IKetcherWidgetArgs> = {}): IKetcherWidgetArgs {
