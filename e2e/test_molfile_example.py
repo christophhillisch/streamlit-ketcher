@@ -46,7 +46,7 @@ def test_should_return_molfile(page: Page):
     frame_0.locator(SELECTION_TOOL).click()
     expect(frame_0.locator(CANVAS_ATOMS)).to_have_count(ETHANOL_ATOM_COUNT)
 
-    frame_0.get_by_role("button", name="Apply").click()
+    # Live update sends the loaded molecule without an Apply button
     output = page.locator(MOLFILE_OUTPUT)
     expect(output).to_contain_text(MOLFILE_VERSION)
 

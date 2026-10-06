@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Streamlit } from "streamlit-component-lib";
 import { Ketcher } from "ketcher-core";
+import { useLiveUpdate } from "./use-live-update.hook";
 
 export const FORMAT_SMILES = "SMILES";
 export const FORMAT_MOLFILE = "MOLFILE";
@@ -50,53 +51,75 @@ const MOLECULE_SERIALIZERS: Record<
   [FORMAT_RXN]: (ketcher) => ketcher.getRxn(),
 };
 
-const serializeMolecule = (
+const serializeMolecule = async (
   ketcher: Ketcher,
   moleculeFormat: MoleculeFormatType,
-): Promise<string> => MOLECULE_SERIALIZERS[moleculeFormat](ketcher);
+): Promise<string | null> => {
+  try {
+    return await MOLECULE_SERIALIZERS[moleculeFormat](ketcher);
+  } catch (error: unknown) {
+    logError("SERIALIZE_FAILED", error);
+    return null;
+  }
+};
+
+const useMoleculeLoader = (
+  ketcher: Ketcher | null,
+  molecule: string | null,
+  shouldSkipMolecule: (molecule: string | null) => boolean,
+): void => {
+  // Ketcher runs overlapping setMolecule calls concurrently and an older load
+  // can win, so each load waits for the previous one.
+  const previousLoadRef = useRef<Promise<void>>(Promise.resolve());
+
+  useEffect(() => {
+    // Python reruns with the value just sent; reloading it would reset the canvas.
+    if (!ketcher || shouldSkipMolecule(molecule)) {
+      return;
+    }
+    previousLoadRef.current = previousLoadRef.current
+      .then(() => ketcher.setMolecule(molecule ?? ""))
+      .catch((error: unknown) => logError("LOAD_MOLECULE_FAILED", error));
+  }, [ketcher, molecule, shouldSkipMolecule]);
+};
 
 export const useKetcherEditor = (
   molecule: string | null,
   moleculeFormat: MoleculeFormatType,
+  isLiveUpdate: boolean,
 ): IKetcherEditor => {
   const [ketcher, setKetcher] = useState<Ketcher | null>(null);
 
-  useEffect(() => {
-    if (!ketcher) {
-      return;
-    }
-    ketcher
-      .setMolecule(molecule ?? "")
-      .catch((error: unknown) => logError("LOAD_MOLECULE_FAILED", error));
-  }, [ketcher, molecule]);
-
-  const handleInit = useCallback(
-    (initializedKetcher: Ketcher) => setKetcher(initializedKetcher),
-    [],
+  const serializeCurrentMolecule = useCallback(
+    async () => (ketcher ? serializeMolecule(ketcher, moleculeFormat) : null),
+    [ketcher, moleculeFormat],
   );
+  const { isLastSentMolecule } = useLiveUpdate(
+    ketcher,
+    isLiveUpdate,
+    serializeCurrentMolecule,
+  );
+  useMoleculeLoader(ketcher, molecule, isLastSentMolecule);
 
   const handleReset = useCallback(async () => {
     try {
       await ketcher?.setMolecule("");
-    } catch (error) {
+    } catch (error: unknown) {
       logError("RESET_FAILED", error);
     }
   }, [ketcher]);
 
   const handleApply = useCallback(async () => {
-    if (!ketcher) {
-      return;
-    }
-    try {
-      const serializedMolecule = await serializeMolecule(
-        ketcher,
-        moleculeFormat,
-      );
+    const serializedMolecule = await serializeCurrentMolecule();
+    if (serializedMolecule !== null) {
       Streamlit.setComponentValue(serializedMolecule);
-    } catch (error) {
-      logError("SERIALIZE_FAILED", error);
     }
-  }, [ketcher, moleculeFormat]);
+  }, [serializeCurrentMolecule]);
 
-  return { isReady: ketcher !== null, handleInit, handleReset, handleApply };
+  return {
+    isReady: ketcher !== null,
+    handleInit: setKetcher,
+    handleReset,
+    handleApply,
+  };
 };

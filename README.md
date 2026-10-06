@@ -32,6 +32,7 @@ st.markdown(f"Smile code: ``{smile_code}``")
 | `height`          | `500`      | Height of the editor in pixels.                                             |
 | `molecule_format` | `"SMILES"` | Format of the returned molecule. See [Molecule formats](#molecule-formats). |
 | `macromolecules`  | `False`    | Show Ketcher's switch to the Macromolecules mode (RNA, DNA and peptides).   |
+| `live_update`     | `True`     | Send the drawing while the user draws. See [Live update](#live-update).     |
 | `key`             | `None`     | Unique key for the widget.                                                  |
 
 The Macromolecules mode is hidden by default, which matches the behaviour
@@ -39,6 +40,20 @@ before Ketcher 3. Enable it with:
 
 ```python
 smile_code = st_ketcher(molecule, macromolecules=True)
+```
+
+## Live update
+
+By default the editor sends the molecule to Python while the user draws, so
+the returned value always matches the canvas. Changes are debounced by 300 ms,
+because every value sent reruns the whole script. In this mode the editor has
+no Apply button; Reset clears the canvas and sends an empty value.
+
+For scripts that are slow to rerun, turn live update off. The editor then
+shows an Apply button and sends the molecule only when it is clicked:
+
+```python
+smile_code = st_ketcher(molecule, live_update=False)
 ```
 
 ## Molecule formats

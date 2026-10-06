@@ -23,13 +23,27 @@ import { Streamlit } from "streamlit-component-lib";
 import { useEffect, useState } from "react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
+const { setMoleculeMock } = vi.hoisted(() => ({ setMoleculeMock: vi.fn() }));
+
 vi.mock("./streamlit-ketcher-editor.component", () => {
   let currentMolecule: string | null = null;
   let moleculeListener: ((mol: string) => void) | null = null;
+  let changeHandler: (() => void) | null = null;
   const mockKetcher = {
     setMolecule: async (mol: string) => {
+      setMoleculeMock(mol);
       currentMolecule = mol;
       moleculeListener?.(mol);
+      changeHandler?.();
+    },
+    editor: {
+      subscribe: (_eventName: string, handler: () => void) => {
+        changeHandler = handler;
+        return handler;
+      },
+      unsubscribe: () => {
+        changeHandler = null;
+      },
     },
     getSmiles: (isExtended?: boolean) =>
       (isExtended ? "CXSMILES:" : "SMILES:") + currentMolecule,
@@ -73,6 +87,7 @@ function getArgs(args: Partial<IKetcherWidgetArgs> = {}): IKetcherWidgetArgs {
     height: 500,
     molecule: "CCO",
     macromolecules: false,
+    live_update: false,
     ...args,
   };
 }
@@ -250,4 +265,36 @@ describe("KetcherWidget", () => {
       );
     },
   );
+
+  it("apply button should be hidden in live update mode", async () => {
+    const props = getProps({ args: getArgs({ live_update: true }) });
+
+    const { getByRole, queryByRole } = render(<KetcherWidget {...props} />);
+    await waitFor(() => {
+      expect(
+        (getByRole("button", { name: "Reset" }) as HTMLButtonElement).disabled,
+      ).toEqual(false);
+    });
+
+    expect(queryByRole("button", { name: "Apply" })).toBeNull();
+  });
+
+  it("live update should send the loaded molecule without reloading its echo", async () => {
+    const props = getProps({
+      args: getArgs({ live_update: true, molecule: "CCO" }),
+    });
+    const setComponentValueMock = vi.mocked(Streamlit.setComponentValue).mock;
+
+    const { rerender } = render(<KetcherWidget {...props} />);
+    await waitFor(() => expect(setComponentValueMock.calls).toHaveLength(1));
+    expect(setComponentValueMock.calls[0][0]).toEqual("SMILES:CCO");
+    rerender(
+      <KetcherWidget
+        {...props}
+        args={getArgs({ live_update: true, molecule: "SMILES:CCO" })}
+      />,
+    );
+
+    expect(setMoleculeMock).toHaveBeenCalledExactlyOnceWith("CCO");
+  });
 });

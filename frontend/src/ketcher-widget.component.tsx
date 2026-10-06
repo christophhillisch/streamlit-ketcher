@@ -27,6 +27,7 @@ export interface IKetcherWidgetArgs {
   height: number;
   molecule_format: MoleculeFormatType;
   macromolecules: boolean;
+  live_update: boolean;
 }
 
 export interface IKetcherWidgetProps extends ComponentProps {
@@ -40,11 +41,13 @@ export const KetcherWidget = function (props: IKetcherWidgetProps) {
     molecule_format: moleculeFormat,
     height,
     macromolecules,
+    live_update: isLiveUpdate,
   } = props.args;
   const theme = props.theme as FixedTheme;
   const { isReady, handleInit, handleReset, handleApply } = useKetcherEditor(
     molecule,
     moleculeFormat,
+    isLiveUpdate,
   );
 
   useEffect(() => Streamlit.setFrameHeight());
@@ -69,9 +72,11 @@ export const KetcherWidget = function (props: IKetcherWidgetProps) {
         <Button theme={theme} onClick={handleReset} disabled={!isReady}>
           Reset
         </Button>
-        <Button theme={theme} onClick={handleApply} disabled={!isReady}>
-          Apply
-        </Button>
+        {!isLiveUpdate && (
+          <Button theme={theme} onClick={handleApply} disabled={!isReady}>
+            Apply
+          </Button>
+        )}
       </ButtonContainer>
     </div>
   );
