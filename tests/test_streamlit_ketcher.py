@@ -30,6 +30,7 @@ def test_render_empty(mock_render_component):
         height=500,
         molecule_format="SMILES",
         macromolecules=False,
+        live_update=True,
         key=None,
         default="",
     )
@@ -42,6 +43,7 @@ def test_render_all_parameters(mock_render_component):
         height=600,
         molecule_format="SMILES",
         macromolecules=True,
+        live_update=False,
         key="key",
     )
     mock_render_component.assert_called_once_with(
@@ -49,6 +51,7 @@ def test_render_all_parameters(mock_render_component):
         height=600,
         molecule_format="SMILES",
         macromolecules=True,
+        live_update=False,
         key="key",
         default="CC0",
     )
@@ -63,6 +66,7 @@ def test_render_molecule_format(mock_render_component, molecule_format):
         height=500,
         molecule_format=molecule_format,
         macromolecules=False,
+        live_update=True,
         key=None,
         default="",
     )
@@ -107,6 +111,7 @@ def test_render_macromolecules(mock_render_component, macromolecules):
         height=500,
         molecule_format="SMILES",
         macromolecules=macromolecules,
+        live_update=True,
         key=None,
         default="",
     )
@@ -120,4 +125,30 @@ def test_invalid_macromolecules(mock_render_component, macromolecules):
         match=re.escape(f"Macromolecules must be a boolean, got: {macromolecules!r}"),
     ):
         st_ketcher(macromolecules=macromolecules)
+    mock_render_component.assert_not_called()
+
+
+@unittest.mock.patch("streamlit_ketcher._render_component")
+@pytest.mark.parametrize("live_update", [True, False])
+def test_render_live_update(mock_render_component, live_update):
+    st_ketcher(live_update=live_update)
+    mock_render_component.assert_called_once_with(
+        molecule="",
+        height=500,
+        molecule_format="SMILES",
+        macromolecules=False,
+        live_update=live_update,
+        key=None,
+        default="",
+    )
+
+
+@unittest.mock.patch("streamlit_ketcher._render_component")
+@pytest.mark.parametrize("live_update", [0, 1, "True", None])
+def test_invalid_live_update(mock_render_component, live_update):
+    with pytest.raises(
+        ValueError,
+        match=re.escape(f"Live update must be a boolean, got: {live_update!r}"),
+    ):
+        st_ketcher(live_update=live_update)
     mock_render_component.assert_not_called()
