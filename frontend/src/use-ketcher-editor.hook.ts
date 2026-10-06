@@ -25,8 +25,8 @@ export type MoleculeFormatType =
 interface IKetcherEditor {
   isReady: boolean;
   handleInit: (ketcher: Ketcher) => void;
-  handleReset: () => Promise<void>;
-  handleApply: () => Promise<void>;
+  handleReset: () => void;
+  handleApply: () => void;
 }
 
 export const logKetcherError = (message: string): void =>
@@ -101,19 +101,18 @@ export const useKetcherEditor = (
   );
   useMoleculeLoader(ketcher, molecule, isLastSentMolecule);
 
-  const handleReset = useCallback(async () => {
-    try {
-      await ketcher?.setMolecule("");
-    } catch (error: unknown) {
-      logError("RESET_FAILED", error);
-    }
+  const handleReset = useCallback(() => {
+    void ketcher
+      ?.setMolecule("")
+      .catch((error: unknown) => logError("RESET_FAILED", error));
   }, [ketcher]);
 
-  const handleApply = useCallback(async () => {
-    const serializedMolecule = await serializeCurrentMolecule();
-    if (serializedMolecule !== null) {
-      Streamlit.setComponentValue(serializedMolecule);
-    }
+  const handleApply = useCallback(() => {
+    void serializeCurrentMolecule().then((serializedMolecule) => {
+      if (serializedMolecule !== null) {
+        Streamlit.setComponentValue(serializedMolecule);
+      }
+    });
   }, [serializeCurrentMolecule]);
 
   return {

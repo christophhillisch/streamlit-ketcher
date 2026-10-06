@@ -14,7 +14,7 @@ interface ILiveUpdate {
 const useDebouncedChangeListener = (
   ketcher: Ketcher | null,
   isEnabled: boolean,
-  onDebouncedChange: () => void,
+  onDebouncedChange: () => Promise<void>,
 ): void => {
   useEffect(() => {
     if (!ketcher || !isEnabled) {
@@ -23,7 +23,10 @@ const useDebouncedChangeListener = (
     let debounceTimer: ReturnType<typeof setTimeout> | undefined;
     const handleChange = (): void => {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(onDebouncedChange, LIVE_UPDATE_DEBOUNCE_MS);
+      debounceTimer = setTimeout(
+        () => void onDebouncedChange(),
+        LIVE_UPDATE_DEBOUNCE_MS,
+      );
     };
     const subscriber: unknown = ketcher.editor.subscribe(
       CHANGE_EVENT,
