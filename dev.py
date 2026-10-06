@@ -98,7 +98,7 @@ def cmd_py_distribute(args):
 
 
 def cmd_py_test(args):
-    app_frontend = THIS_DIRECTORY / "streamlit_ketcher" / "frontend"
+    app_frontend = THIS_DIRECTORY / "streamlit_ketcher_editor" / "frontend"
     if not app_frontend.exists():
         app_frontend.mkdir()
 

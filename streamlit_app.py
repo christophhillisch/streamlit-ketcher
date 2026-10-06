@@ -1,9 +1,9 @@
 import streamlit as st
 
-from streamlit_ketcher import st_ketcher
+from streamlit_ketcher_editor import st_ketcher
 
 st.set_page_config(layout="wide")
-st.title("`streamlit-ketcher`")
+st.title("`streamlit-ketcher-editor`")
 
 st.header("Component with user input")
 DEFAULT_MOL = (

@@ -4,7 +4,7 @@ from typing import get_args
 
 import pytest
 
-from streamlit_ketcher import (
+from streamlit_ketcher_editor import (
     SUPPORTED_MOLECULE_FORMATS,
     MoleculeFormatType,
     st_ketcher,
@@ -22,7 +22,7 @@ ALL_MOLECULE_FORMATS = [
 ]
 
 
-@unittest.mock.patch("streamlit_ketcher._render_component")
+@unittest.mock.patch("streamlit_ketcher_editor._render_component")
 def test_render_empty(mock_render_component):
     st_ketcher()
     mock_render_component.assert_called_once_with(
@@ -36,7 +36,7 @@ def test_render_empty(mock_render_component):
     )
 
 
-@unittest.mock.patch("streamlit_ketcher._render_component")
+@unittest.mock.patch("streamlit_ketcher_editor._render_component")
 def test_render_all_parameters(mock_render_component):
     st_ketcher(
         value="CC0",
@@ -57,7 +57,7 @@ def test_render_all_parameters(mock_render_component):
     )
 
 
-@unittest.mock.patch("streamlit_ketcher._render_component")
+@unittest.mock.patch("streamlit_ketcher_editor._render_component")
 @pytest.mark.parametrize("molecule_format", ALL_MOLECULE_FORMATS)
 def test_render_molecule_format(mock_render_component, molecule_format):
     st_ketcher(molecule_format=molecule_format)
@@ -72,7 +72,7 @@ def test_render_molecule_format(mock_render_component, molecule_format):
     )
 
 
-@unittest.mock.patch("streamlit_ketcher._render_component")
+@unittest.mock.patch("streamlit_ketcher_editor._render_component")
 @pytest.mark.parametrize("molecule_format", ["INVALID", "smiles", "__doc__", "name"])
 def test_invalid_molecule_format(mock_render_component, molecule_format):
     with pytest.raises(
@@ -91,7 +91,7 @@ def test_molecule_format_type_matches_supported_formats():
     assert list(get_args(MoleculeFormatType)) == SUPPORTED_MOLECULE_FORMATS
 
 
-@unittest.mock.patch("streamlit_ketcher._render_component")
+@unittest.mock.patch("streamlit_ketcher_editor._render_component")
 @pytest.mark.parametrize("height", [0, -100, 1.5, True, "500"])
 def test_invalid_height(mock_render_component, height):
     with pytest.raises(
@@ -102,7 +102,7 @@ def test_invalid_height(mock_render_component, height):
     mock_render_component.assert_not_called()
 
 
-@unittest.mock.patch("streamlit_ketcher._render_component")
+@unittest.mock.patch("streamlit_ketcher_editor._render_component")
 @pytest.mark.parametrize("macromolecules", [True, False])
 def test_render_macromolecules(mock_render_component, macromolecules):
     st_ketcher(macromolecules=macromolecules)
@@ -117,7 +117,7 @@ def test_render_macromolecules(mock_render_component, macromolecules):
     )
 
 
-@unittest.mock.patch("streamlit_ketcher._render_component")
+@unittest.mock.patch("streamlit_ketcher_editor._render_component")
 @pytest.mark.parametrize("macromolecules", [0, 1, "True", None])
 def test_invalid_macromolecules(mock_render_component, macromolecules):
     with pytest.raises(
@@ -128,7 +128,7 @@ def test_invalid_macromolecules(mock_render_component, macromolecules):
     mock_render_component.assert_not_called()
 
 
-@unittest.mock.patch("streamlit_ketcher._render_component")
+@unittest.mock.patch("streamlit_ketcher_editor._render_component")
 @pytest.mark.parametrize("live_update", [True, False])
 def test_render_live_update(mock_render_component, live_update):
     st_ketcher(live_update=live_update)
@@ -143,7 +143,7 @@ def test_render_live_update(mock_render_component, live_update):
     )
 
 
-@unittest.mock.patch("streamlit_ketcher._render_component")
+@unittest.mock.patch("streamlit_ketcher_editor._render_component")
 @pytest.mark.parametrize("live_update", [0, 1, "True", None])
 def test_invalid_live_update(mock_render_component, live_update):
     with pytest.raises(
