@@ -56,6 +56,13 @@ shows an Apply button and sends the molecule only when it is clicked:
 smile_code = st_ketcher(molecule, live_update=False)
 ```
 
+## Dark theme
+
+The loading screen, the frame around the editor and the Reset/Apply buttons
+follow the Streamlit theme. Ketcher itself has no dark theme, so the drawing
+area stays light; in a dark app it sits inside a frame so the contrast looks
+deliberate.
+
 ## Molecule formats
 
 `value` accepts any format Ketcher can read; Ketcher detects it automatically.
