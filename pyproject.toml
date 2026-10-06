@@ -4,8 +4,8 @@ requires = ["setuptools>=80.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "streamlit_ketcher"
-version = "0.0.2"
+name = "streamlit-ketcher-editor"
+version = "0.1.0"
 authors = [
     { name="Christoph Hillisch" },
     { name="Kamil Bregula", email="dzakus13+pypi@gmail.com" },
@@ -13,7 +13,7 @@ authors = [
 description = "Ketcher editor component for Streamlit."
 readme = "README.md"
 license = "Apache-2.0"
-license-files = ["LICENSE", "NOTICES"]
+license-files = ["LICENSE", "NOTICE", "NOTICES"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -32,10 +32,10 @@ requires-python = ">=3.14"
 packages = {find={}}
 
 [tool.setuptools.package-data]
-streamlit_ketcher = ["py.typed"]
+streamlit_ketcher_editor = ["py.typed"]
 
 [tool.mypy]
-files = ["streamlit_ketcher"]
+files = ["streamlit_ketcher_editor"]
 strict = true
 
 [project.urls]

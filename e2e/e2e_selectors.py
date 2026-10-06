@@ -1,4 +1,4 @@
-KETCHER_IFRAME = r'iframe[title="streamlit_ketcher\.streamlit_ketcher"]'
+KETCHER_IFRAME = r'iframe[title="streamlit_ketcher_editor\.streamlit_ketcher_editor"]'
 
 # Ketcher 3 renders both the molecules and macromolecules editors in the DOM,
 # so selectors must target the visible (molecules) one.

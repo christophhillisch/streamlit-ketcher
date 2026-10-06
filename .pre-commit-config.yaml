@@ -56,7 +56,7 @@ repos:
         entry: mypy
         language: system
         types: [python]
-        files: ^streamlit_ketcher/
+        files: ^streamlit_ketcher_editor/
         pass_filenames: false
       - id: yarn-format
         name: Run formatted for frontend code

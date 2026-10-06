@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
-// Must match the URL declared in streamlit_ketcher/__init__.py for dev mode.
+// Must match the URL declared in streamlit_ketcher_editor/__init__.py for dev mode.
 const DEV_SERVER_PORT = 3000;
 
 export default defineConfig({
@@ -19,7 +19,7 @@ export default defineConfig({
     strictPort: true,
   },
   build: {
-    outDir: "../streamlit_ketcher/frontend",
+    outDir: "../streamlit_ketcher_editor/frontend",
     emptyOutDir: true,
   },
   test: {

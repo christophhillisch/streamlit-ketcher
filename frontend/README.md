@@ -1,4 +1,4 @@
-# streamlit-ketcher frontend
+# streamlit-ketcher-editor frontend
 
 React 19 + [Ketcher](https://github.com/epam/ketcher), built with [Vite](https://vite.dev)
 and tested with [Vitest](https://vitest.dev).
@@ -16,7 +16,7 @@ and tested with [Vitest](https://vitest.dev).
 | `yarn start`     | Start the dev server with hot reload on http://localhost:3000       |
 | `yarn test`      | Run unit tests in watch mode (`yarn test --run` for a single run)   |
 | `yarn typecheck` | Type-check with TypeScript                                          |
-| `yarn build`     | Type-check and build into `../streamlit_ketcher/frontend`           |
+| `yarn build`     | Type-check and build into `../streamlit_ketcher_editor/frontend`           |
 | `yarn format`    | Format sources with Prettier                                        |
 
 ## Developing against a Streamlit app
@@ -30,8 +30,8 @@ yarn start
 
 ```shell
 # In a second terminal, from the repository root
-STREAMLIT_KETCHER_DEV_SERVER_URL=http://localhost:3000 streamlit run streamlit_app.py
+STREAMLIT_KETCHER_EDITOR_DEV_SERVER_URL=http://localhost:3000 streamlit run streamlit_app.py
 ```
 
 On Windows PowerShell, set the variable with
-`$env:STREAMLIT_KETCHER_DEV_SERVER_URL = "http://localhost:3000"` first.
+`$env:STREAMLIT_KETCHER_EDITOR_DEV_SERVER_URL = "http://localhost:3000"` first.

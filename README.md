@@ -1,15 +1,25 @@
-# 🧪 Streamlit Ketcher
+# 🧪 Streamlit Ketcher Editor
 
-[![GitHub][github_badge]][github_link] [![PyPI][pypi_badge]][pypi_link]
+[![GitHub][github_badge]][github_link] [![PyPI][pypi_badge]][pypi_link] [![Open in Streamlit][share_badge]][share_link]
 
-Streamlit components that adds the ability to draw chemical compounds. This is a critical dependency for most drug discovery / drug design / cheminformatics applications.
+A Streamlit component for drawing chemical structures and reactions, built on
+EPAM's [Ketcher](https://lifescience.opensource.epam.com/ketcher/index.html)
+3 editor. Use it in drug discovery and cheminformatics apps to let users draw a
+molecule and get it back as SMILES, Molfile, InChI and other formats.
 
-It is based on [Ketcher](https://lifescience.opensource.epam.com/ketcher/index.html).
+This is a maintained fork of
+[streamlit-ketcher](https://github.com/mik-laj/streamlit-ketcher) by Kamil
+Bregula, upgraded to Ketcher 3, Python 3.14 and current Streamlit. See
+[CHANGELOG.md](CHANGELOG.md) for what changed and how to migrate.
+
+**Try it:** [live demo][share_link]
 
 ## Installation
 
+Requires Python 3.14 or newer and Streamlit 1.64 or newer.
+
 ```shell
-pip install streamlit-ketcher
+pip install streamlit-ketcher-editor
 ```
 
 ## Getting started
@@ -17,12 +27,23 @@ pip install streamlit-ketcher
 ```python
 import streamlit as st
 
-from streamlit_ketcher import st_ketcher
+from streamlit_ketcher_editor import st_ketcher
 
 molecule = st.text_input("Molecule", "CCO")
-smile_code = st_ketcher(molecule)
-st.markdown(f"Smile code: ``{smile_code}``")
+smiles = st_ketcher(molecule)
+st.markdown(f"SMILES: ``{smiles}``")
 ```
+
+### Migrating from `streamlit-ketcher`
+
+```shell
+pip uninstall streamlit-ketcher
+pip install streamlit-ketcher-editor
+```
+
+Then change the import to `from streamlit_ketcher_editor import st_ketcher`.
+`st_ketcher` keeps its arguments, but it now sends the drawing while the user
+draws. Pass `live_update=False` to keep the Apply button.
 
 ## Options
 
@@ -39,7 +60,7 @@ The Macromolecules mode is hidden by default, which matches the behaviour
 before Ketcher 3. Enable it with:
 
 ```python
-smile_code = st_ketcher(molecule, macromolecules=True)
+smiles = st_ketcher(molecule, macromolecules=True)
 ```
 
 ## Live update
@@ -53,7 +74,7 @@ For scripts that are slow to rerun, turn live update off. The editor then
 shows an Apply button and sends the molecule only when it is clicked:
 
 ```python
-smile_code = st_ketcher(molecule, live_update=False)
+smiles = st_ketcher(molecule, live_update=False)
 ```
 
 ## Dark theme
@@ -110,16 +131,21 @@ See [frontend/README.md](frontend/README.md) for frontend hot reload.
 
 ## Demo
 
-[![Open in Streamlit][share_badge]][share_link]
+The [live demo][share_link] runs [streamlit_app.py](streamlit_app.py) on
+Streamlit Community Cloud. Every push to `main` builds a wheel and pushes it,
+with the demo app, to the `deploy-branch` branch, which the demo is deployed from.
 
-[![Preview][share_img]][share_link]
+## License
+
+Apache License 2.0, see [LICENSE](LICENSE). [NOTICE](NOTICE) credits the
+original project and Ketcher; [NOTICES](NOTICES) lists the licenses of the
+bundled frontend dependencies.
 
 [share_badge]: https://static.streamlit.io/badges/streamlit_badge_black_white.svg
-[share_link]: https://ketcher-editor.streamlit.app/
-[share_img]: https://storage.googleapis.com/s4a-prod-share-preview/default/st_app_fallback_image.png
+[share_link]: https://streamlit-ketcher-editor.streamlit.app/
 
 [github_badge]: https://badgen.net/badge/icon/GitHub?icon=github&color=black&label
-[github_link]: https://github.com/mik-laj/streamlit-ketcher
+[github_link]: https://github.com/christophhillisch/streamlit-ketcher
 
-[pypi_badge]: https://badgen.net/pypi/v/streamlit-ketcher?icon=pypi&color=black&label
-[pypi_link]: https://pypi.org/project/streamlit-ketcher
+[pypi_badge]: https://badgen.net/pypi/v/streamlit-ketcher-editor?icon=pypi&color=black&label
+[pypi_link]: https://pypi.org/project/streamlit-ketcher-editor

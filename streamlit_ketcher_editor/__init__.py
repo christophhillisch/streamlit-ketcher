@@ -7,16 +7,16 @@ import streamlit.components.v1 as components
 
 # Set to the Vite dev server URL (e.g. http://localhost:3000) to develop the
 # frontend with hot reload instead of serving the production build.
-_DEV_SERVER_URL = os.environ.get("STREAMLIT_KETCHER_DEV_SERVER_URL")
+_DEV_SERVER_URL = os.environ.get("STREAMLIT_KETCHER_EDITOR_DEV_SERVER_URL")
 
 if _DEV_SERVER_URL:
     _render_component = components.declare_component(
-        "streamlit_ketcher", url=_DEV_SERVER_URL
+        "streamlit_ketcher_editor", url=_DEV_SERVER_URL
     )
 else:
     build_dir = Path(__file__).parent / "frontend"
     _render_component = components.declare_component(
-        "streamlit_ketcher", path=str(build_dir)
+        "streamlit_ketcher_editor", path=str(build_dir)
     )
 
 

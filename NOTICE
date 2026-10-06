@@ -1,0 +1,15 @@
+streamlit-ketcher-editor
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product is a modified version of streamlit-ketcher
+(https://github.com/mik-laj/streamlit-ketcher), originally developed by
+Kamil Bregula. The changes are listed in CHANGELOG.md.
+
+This product bundles Ketcher (https://github.com/epam/ketcher), licensed under
+the Apache License, Version 2.0, whose NOTICE file reads:
+
+ Ketcher
+ Copyright (C) 2018 EPAM Systems
+ This product includes software developed at EPAM Systems, Inc.
+
+Notices for the other bundled frontend dependencies are in NOTICES.
