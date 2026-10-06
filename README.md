@@ -142,7 +142,7 @@ original project and Ketcher; [NOTICES](NOTICES) lists the licenses of the
 bundled frontend dependencies.
 
 [share_badge]: https://static.streamlit.io/badges/streamlit_badge_black_white.svg
-[share_link]: https://streamlit-ketcher-editor.streamlit.app/
+[share_link]: https://sl-ketcher-editor.streamlit.app/
 
 [github_badge]: https://badgen.net/badge/icon/GitHub?icon=github&color=black&label
 [github_link]: https://github.com/christophhillisch/streamlit-ketcher
