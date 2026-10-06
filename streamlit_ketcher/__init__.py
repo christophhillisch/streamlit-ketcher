@@ -138,4 +138,5 @@ def st_ketcher(
         default={_MOLECULE_STATE_KEY: value},
         on_molecule_change=_ignore_molecule_change,
     )
-    return result.get(_MOLECULE_STATE_KEY)
+    molecule: str | None = result.get(_MOLECULE_STATE_KEY)
+    return molecule
