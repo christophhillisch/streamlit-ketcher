@@ -9,12 +9,19 @@ import renderKetcherComponent, {
 import { IKetcherWidgetProps } from "./ketcher-widget.component";
 import { SINGLE_EDITOR_MESSAGE } from "./single-editor-notice.component";
 
+const { receivedCallbacks } = vi.hoisted(() => ({
+  receivedCallbacks: [] as unknown[],
+}));
+
 vi.mock("./ketcher-widget.component", () => ({
-  KetcherWidget: ({ molecule, onApply }: IKetcherWidgetProps) => (
-    <button onClick={() => onApply(`APPLIED:${molecule}`)}>
-      {`widget molecule=${molecule}`}
-    </button>
-  ),
+  KetcherWidget: ({ molecule, onMoleculeChange }: IKetcherWidgetProps) => {
+    receivedCallbacks.push(onMoleculeChange);
+    return (
+      <button onClick={() => onMoleculeChange(`CHANGED:${molecule}`)}>
+        {`widget molecule=${molecule}`}
+      </button>
+    );
+  },
 }));
 
 type RendererArgsType = FrontendRendererArgs<
@@ -31,9 +38,10 @@ const createArgs = (
     height: 500,
     molecule_format: "SMILES",
     macromolecules: false,
+    live_update: true,
   },
   key: "ketcher-key",
-  name: "streamlit_ketcher.ketcher",
+  name: "streamlit_ketcher_editor.ketcher",
   parentElement,
   setStateValue: vi.fn(),
   setTriggerValue: vi.fn(),
@@ -62,6 +70,7 @@ describe("renderKetcherComponent", () => {
 
   afterEach(() => {
     parentElement.replaceChildren();
+    receivedCallbacks.length = 0;
   });
 
   it("reuses one React root across reruns", () => {
@@ -108,7 +117,7 @@ describe("renderKetcherComponent", () => {
     act(() => secondCleanup());
   });
 
-  it("stores the applied molecule in the component state", () => {
+  it("stores the changed molecule in the component state", () => {
     const args = createArgs(parentElement, "CCO");
     const cleanup = renderInAct(args);
 
@@ -116,7 +125,24 @@ describe("renderKetcherComponent", () => {
 
     expect(args.setStateValue).toHaveBeenCalledExactlyOnceWith(
       "molecule",
-      "APPLIED:CCO",
+      "CHANGED:CCO",
+    );
+    act(() => cleanup());
+  });
+
+  it("keeps one change callback across reruns and sends with the latest state setter", () => {
+    const firstArgs = createArgs(parentElement, "CCO");
+    renderInAct(firstArgs);
+    const rerunArgs = createArgs(parentElement, "CCN");
+    const cleanup = renderInAct(rerunArgs);
+
+    act(() => within(parentElement).getByRole("button").click());
+
+    expect(new Set(receivedCallbacks).size).toBe(1);
+    expect(firstArgs.setStateValue).not.toHaveBeenCalled();
+    expect(rerunArgs.setStateValue).toHaveBeenCalledExactlyOnceWith(
+      "molecule",
+      "CHANGED:CCN",
     );
     act(() => cleanup());
   });

@@ -1,11 +1,12 @@
 import styled from "@emotion/styled";
+import {
+  BACKGROUND_COLOR,
+  BORDER_COLOR,
+  BUTTON_RADIUS,
+  PRIMARY_COLOR,
+  TEXT_COLOR,
+} from "./streamlit-theme";
 
-// Streamlit exposes its theme to v2 components as --st-* CSS custom properties.
-const PRIMARY_COLOR = "var(--st-primary-color, #ff4b4b)";
-const BACKGROUND_COLOR = "var(--st-background-color, #ffffff)";
-const TEXT_COLOR = "var(--st-text-color, #31333f)";
-const BORDER_COLOR = "var(--st-border-color, rgba(49, 51, 63, 0.2))";
-const BUTTON_RADIUS = "var(--st-button-radius, 0.5rem)";
 const FOCUS_RING_COLOR = `color-mix(in srgb, ${PRIMARY_COLOR} 50%, transparent)`;
 const DISABLED_OPACITY = 0.4;
 

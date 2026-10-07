@@ -17,13 +17,27 @@ import { Ketcher } from "ketcher-core";
 import { useEffect, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+const { setMoleculeMock } = vi.hoisted(() => ({ setMoleculeMock: vi.fn() }));
+
 vi.mock("./streamlit-ketcher-editor.component", () => {
   let currentMolecule: string | null = null;
   let moleculeListener: ((mol: string) => void) | null = null;
+  let changeHandler: (() => void) | null = null;
   const mockKetcher = {
     setMolecule: async (mol: string) => {
+      setMoleculeMock(mol);
       currentMolecule = mol;
       moleculeListener?.(mol);
+      changeHandler?.();
+    },
+    editor: {
+      subscribe: (_eventName: string, handler: () => void) => {
+        changeHandler = handler;
+        return handler;
+      },
+      unsubscribe: () => {
+        changeHandler = null;
+      },
     },
     getSmiles: (isExtended?: boolean) =>
       (isExtended ? "CXSMILES:" : "SMILES:") + currentMolecule,
@@ -35,30 +49,30 @@ vi.mock("./streamlit-ketcher-editor.component", () => {
     getRxn: () => "RXN:" + currentMolecule,
   };
 
-  return {
-    default: (props: StreamlitKetcherEditorProps) => {
-      const [, setMolecule] = useState<string>();
-      moleculeListener = setMolecule;
-      useEffect(() => {
-        const timer = setTimeout(
-          () => props.onInit!(mockKetcher as unknown as Ketcher),
-          0,
-        );
-
-        return () => clearTimeout(timer);
-      }, []);
-
-      return (
-        <div>
-          StreamlitKetcherEditor [
-          {"molecule=" + JSON.stringify(currentMolecule)}
-          {" disableMacromoleculesEditor=" +
-            String(props.disableMacromoleculesEditor)}
-          ]
-        </div>
+  const MockStreamlitKetcherEditor = (props: StreamlitKetcherEditorProps) => {
+    const { onInit } = props;
+    const [, setMolecule] = useState<string>();
+    moleculeListener = setMolecule;
+    useEffect(() => {
+      const timer = setTimeout(
+        () => onInit!(mockKetcher as unknown as Ketcher),
+        0,
       );
-    },
+
+      return () => clearTimeout(timer);
+    }, [onInit]);
+
+    return (
+      <div>
+        StreamlitKetcherEditor [{"molecule=" + JSON.stringify(currentMolecule)}
+        {" disableMacromoleculesEditor=" +
+          String(props.disableMacromoleculesEditor)}
+        ]
+      </div>
+    );
   };
+
+  return { default: MockStreamlitKetcherEditor };
 });
 
 function getProps(
@@ -69,8 +83,9 @@ function getProps(
     height: 500,
     moleculeFormat: FORMAT_SMILES,
     macromolecules: false,
+    isLiveUpdate: false,
     staticResourcesUrl: "http://localhost/assets",
-    onApply: vi.fn(),
+    onMoleculeChange: vi.fn(),
     ...props,
   };
 }
@@ -190,14 +205,14 @@ describe("KetcherWidget", () => {
     [FORMAT_SMARTS, "[#6]-[#6]"],
     [FORMAT_RXN, "CCO>>CC=O"],
   ])(
-    "apply button should set the %s molecule to parent frame",
+    "apply button should send the %s molecule to Streamlit",
     async (moleculeFormat, molecule) => {
-      const onApply = vi.fn();
+      const onMoleculeChange = vi.fn();
       const props = getProps({
         height: 800,
         moleculeFormat,
         molecule,
-        onApply,
+        onMoleculeChange,
       });
 
       const { getByRole, queryByText } = render(<KetcherWidget {...props} />);
@@ -213,10 +228,40 @@ describe("KetcherWidget", () => {
       fireEvent.click(buttonApply);
 
       await waitFor(() =>
-        expect(onApply).toHaveBeenCalledExactlyOnceWith(
+        expect(onMoleculeChange).toHaveBeenCalledExactlyOnceWith(
           `${moleculeFormat}:${molecule}`,
         ),
       );
     },
   );
+
+  it("apply button should be hidden in live update mode", async () => {
+    const props = getProps({ isLiveUpdate: true });
+
+    const { getByRole, queryByRole } = render(<KetcherWidget {...props} />);
+    await waitFor(() => {
+      expect(
+        (getByRole("button", { name: "Reset" }) as HTMLButtonElement).disabled,
+      ).toEqual(false);
+    });
+
+    expect(queryByRole("button", { name: "Apply" })).toBeNull();
+  });
+
+  it("live update should send the loaded molecule without reloading its echo", async () => {
+    const onMoleculeChange = vi.fn();
+    const props = getProps({
+      isLiveUpdate: true,
+      molecule: "CCO",
+      onMoleculeChange,
+    });
+
+    const { rerender } = render(<KetcherWidget {...props} />);
+    await waitFor(() =>
+      expect(onMoleculeChange).toHaveBeenCalledExactlyOnceWith("SMILES:CCO"),
+    );
+    rerender(<KetcherWidget {...props} molecule="SMILES:CCO" />);
+
+    expect(setMoleculeMock).toHaveBeenCalledExactlyOnceWith("CCO");
+  });
 });

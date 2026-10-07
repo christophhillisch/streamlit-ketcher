@@ -1,8 +1,9 @@
 # Streamlit Components v2 manifest. Streamlit discovers it in the installed
 # package and serves `asset_dir` under /_stcore/bidi-components/.
-# `name` must match the distribution name in the repository-level pyproject.toml.
+# `name` must match the distribution name in the repository-level pyproject.toml
+# (compared after PEP 503 normalization, so underscores match hyphens).
 [project]
-name = "streamlit_ketcher"
+name = "streamlit_ketcher_editor"
 
 [[tool.streamlit.component.components]]
 name = "ketcher"

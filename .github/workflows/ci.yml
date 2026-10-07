@@ -92,9 +92,9 @@ jobs:
 
       - name: Verify package
         run: |
-          tar -tvf dist/streamlit_ketcher-*.tar.gz | grep NOTICES
-          tar -tvf dist/streamlit_ketcher-*.tar.gz | grep py.typed
-          unzip -l dist/streamlit_ketcher-*.whl | grep py.typed
+          tar -tvf dist/streamlit_ketcher_editor-*.tar.gz | grep NOTICES
+          tar -tvf dist/streamlit_ketcher_editor-*.tar.gz | grep py.typed
+          unzip -l dist/streamlit_ketcher_editor-*.whl | grep py.typed
 
       - run: mkdir -p "$(yarn cache dir)"
 
@@ -108,7 +108,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
         if: |
-          github.repository == 'mik-laj/streamlit-ketcher' &&
+          github.repository == 'christophhillisch/streamlit-ketcher' &&
           github.event_name == 'push' &&
           github.ref == 'refs/heads/main'
         with:
@@ -118,7 +118,7 @@ jobs:
 
       - name: Deploy preview to ${{ env.TARGET_BRANCH }}
         if: |
-          github.repository == 'mik-laj/streamlit-ketcher' &&
+          github.repository == 'christophhillisch/streamlit-ketcher' &&
           github.event_name == 'push' &&
           github.ref == 'refs/heads/main'
         run: |
@@ -129,7 +129,7 @@ jobs:
             git rm --cached -r .;
             git clean -f -d
           )
-          cp dist/streamlit_ketcher-*.whl component-preview/
+          cp dist/streamlit_ketcher_editor-*.whl component-preview/
           cp streamlit_app.py component-preview/
 
           (
@@ -138,7 +138,7 @@ jobs:
           git config --local user.email \
             "41898282+github-actions[bot]@users.noreply.github.com";
           git config --local user.name "github-actions[bot]";
-          ls streamlit_ketcher-*.whl > requirements.txt;
+          ls streamlit_ketcher_editor-*.whl > requirements.txt;
           git add .;
           git commit --all --message "\
           Updating constraints. Github run id: ${GITHUB_RUN_ID}

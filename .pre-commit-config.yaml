@@ -56,7 +56,7 @@ repos:
         entry: mypy
         language: system
         types: [python]
-        files: ^streamlit_ketcher/
+        files: ^streamlit_ketcher_editor/
         pass_filenames: false
       - id: yarn-format
         name: Run formatted for frontend code
@@ -64,6 +64,18 @@ repos:
         language: system
         files: ^frontend/src\/.+\.([jt]sx?|s?css)$
         require_serial: true
+      - id: eslint
+        name: Lint frontend code with ESLint
+        entry: ./dev.py js-lint
+        language: system
+        files: |
+          (?x)^frontend/(
+            src/.+\.[jt]sx?|
+            eslint\.config\.js|
+            package\.json|
+            tsconfig\.json
+          )$
+        pass_filenames: false
       - id: license-disclaimer
         name: Generate NOTICES
         language: system

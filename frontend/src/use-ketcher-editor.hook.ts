@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Ketcher } from "ketcher-core";
+import { useLiveUpdate } from "./use-live-update.hook";
 
 export const FORMAT_SMILES = "SMILES";
 export const FORMAT_MOLFILE = "MOLFILE";
@@ -23,8 +24,8 @@ export type MoleculeFormatType =
 interface IKetcherEditor {
   isReady: boolean;
   handleInit: (ketcher: Ketcher) => void;
-  handleReset: () => Promise<void>;
-  handleApply: () => Promise<void>;
+  handleReset: () => void;
+  handleApply: () => void;
 }
 
 export const logKetcherError = (message: string): void =>
@@ -49,54 +50,76 @@ const MOLECULE_SERIALIZERS: Record<
   [FORMAT_RXN]: (ketcher) => ketcher.getRxn(),
 };
 
-const serializeMolecule = (
+const serializeMolecule = async (
   ketcher: Ketcher,
   moleculeFormat: MoleculeFormatType,
-): Promise<string> => MOLECULE_SERIALIZERS[moleculeFormat](ketcher);
+): Promise<string | null> => {
+  try {
+    return await MOLECULE_SERIALIZERS[moleculeFormat](ketcher);
+  } catch (error: unknown) {
+    logError("SERIALIZE_FAILED", error);
+    return null;
+  }
+};
+
+const useMoleculeLoader = (
+  ketcher: Ketcher | null,
+  molecule: string | null,
+  shouldSkipMolecule: (molecule: string | null) => boolean,
+): void => {
+  // Ketcher runs overlapping setMolecule calls concurrently and an older load
+  // can win, so each load waits for the previous one.
+  const previousLoadRef = useRef<Promise<void>>(Promise.resolve());
+
+  useEffect(() => {
+    // Python reruns with the value just sent; reloading it would reset the canvas.
+    if (!ketcher || shouldSkipMolecule(molecule)) {
+      return;
+    }
+    previousLoadRef.current = previousLoadRef.current
+      .then(() => ketcher.setMolecule(molecule ?? ""))
+      .catch((error: unknown) => logError("LOAD_MOLECULE_FAILED", error));
+  }, [ketcher, molecule, shouldSkipMolecule]);
+};
 
 export const useKetcherEditor = (
   molecule: string | null,
   moleculeFormat: MoleculeFormatType,
-  onApply: (serializedMolecule: string) => void,
+  isLiveUpdate: boolean,
+  onMoleculeChange: (serializedMolecule: string) => void,
 ): IKetcherEditor => {
   const [ketcher, setKetcher] = useState<Ketcher | null>(null);
 
-  useEffect(() => {
-    if (!ketcher) {
-      return;
-    }
-    ketcher
-      .setMolecule(molecule ?? "")
-      .catch((error: unknown) => logError("LOAD_MOLECULE_FAILED", error));
-  }, [ketcher, molecule]);
-
-  const handleInit = useCallback(
-    (initializedKetcher: Ketcher) => setKetcher(initializedKetcher),
-    [],
+  const serializeCurrentMolecule = useCallback(
+    async () => (ketcher ? serializeMolecule(ketcher, moleculeFormat) : null),
+    [ketcher, moleculeFormat],
   );
+  const { isLastSentMolecule } = useLiveUpdate(
+    ketcher,
+    isLiveUpdate,
+    serializeCurrentMolecule,
+    onMoleculeChange,
+  );
+  useMoleculeLoader(ketcher, molecule, isLastSentMolecule);
 
-  const handleReset = useCallback(async () => {
-    try {
-      await ketcher?.setMolecule("");
-    } catch (error) {
-      logError("RESET_FAILED", error);
-    }
+  const handleReset = useCallback(() => {
+    void ketcher
+      ?.setMolecule("")
+      .catch((error: unknown) => logError("RESET_FAILED", error));
   }, [ketcher]);
 
-  const handleApply = useCallback(async () => {
-    if (!ketcher) {
-      return;
-    }
-    try {
-      const serializedMolecule = await serializeMolecule(
-        ketcher,
-        moleculeFormat,
-      );
-      onApply(serializedMolecule);
-    } catch (error) {
-      logError("SERIALIZE_FAILED", error);
-    }
-  }, [ketcher, moleculeFormat, onApply]);
+  const handleApply = useCallback(() => {
+    void serializeCurrentMolecule().then((serializedMolecule) => {
+      if (serializedMolecule !== null) {
+        onMoleculeChange(serializedMolecule);
+      }
+    });
+  }, [serializeCurrentMolecule, onMoleculeChange]);
 
-  return { isReady: ketcher !== null, handleInit, handleReset, handleApply };
+  return {
+    isReady: ketcher !== null,
+    handleInit: setKetcher,
+    handleReset,
+    handleApply,
+  };
 };

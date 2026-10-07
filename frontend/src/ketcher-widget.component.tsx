@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import "ketcher-react/dist/index.css";
 import { Button, ButtonContainer } from "./button.component";
+import { EditorFrame } from "./editor-frame.component";
 import {
   EmptySpace,
   LoadingPlaceholder,
@@ -20,8 +21,9 @@ export interface IKetcherWidgetProps {
   readonly height: number;
   readonly moleculeFormat: MoleculeFormatType;
   readonly macromolecules: boolean;
+  readonly isLiveUpdate: boolean;
   readonly staticResourcesUrl: string;
-  readonly onApply: (serializedMolecule: string) => void;
+  readonly onMoleculeChange: (serializedMolecule: string) => void;
 }
 
 export const KetcherWidget = ({
@@ -29,38 +31,44 @@ export const KetcherWidget = ({
   height,
   moleculeFormat,
   macromolecules,
+  isLiveUpdate,
   staticResourcesUrl,
-  onApply,
+  onMoleculeChange,
 }: IKetcherWidgetProps) => {
   const { isReady, handleInit, handleReset, handleApply } = useKetcherEditor(
     molecule,
     moleculeFormat,
-    onApply,
+    isLiveUpdate,
+    onMoleculeChange,
   );
 
   return (
     <div data-testid="streamlit-ketcher">
-      {!isReady && (
-        <LoadingPlaceholder data-testid="loading-placeholder" height={height}>
-          Loading...
-        </LoadingPlaceholder>
-      )}
-      <Suspense fallback={<EmptySpace height={height} />}>
-        <StreamlitKetcherEditor
-          height={height}
-          disableMacromoleculesEditor={!macromolecules}
-          staticResourcesUrl={staticResourcesUrl}
-          errorHandler={logKetcherError}
-          onInit={handleInit}
-        />
-      </Suspense>
+      <EditorFrame data-testid="editor-frame">
+        {!isReady && (
+          <LoadingPlaceholder data-testid="loading-placeholder" height={height}>
+            Loading...
+          </LoadingPlaceholder>
+        )}
+        <Suspense fallback={<EmptySpace height={height} />}>
+          <StreamlitKetcherEditor
+            height={height}
+            disableMacromoleculesEditor={!macromolecules}
+            staticResourcesUrl={staticResourcesUrl}
+            errorHandler={logKetcherError}
+            onInit={handleInit}
+          />
+        </Suspense>
+      </EditorFrame>
       <ButtonContainer>
         <Button onClick={handleReset} disabled={!isReady}>
           Reset
         </Button>
-        <Button onClick={handleApply} disabled={!isReady}>
-          Apply
-        </Button>
+        {!isLiveUpdate && (
+          <Button onClick={handleApply} disabled={!isReady}>
+            Apply
+          </Button>
+        )}
       </ButtonContainer>
     </div>
   );

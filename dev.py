@@ -98,7 +98,7 @@ def cmd_py_distribute(args):
 
 
 def cmd_py_test(args):
-    app_frontend = THIS_DIRECTORY / "streamlit_ketcher" / "frontend"
+    app_frontend = THIS_DIRECTORY / "streamlit_ketcher_editor" / "frontend"
     if not app_frontend.exists():
         app_frontend.mkdir()
 
@@ -111,6 +111,10 @@ def cmd_js_format(args):
         for filepath in args.files
     ]
     run_verbose(["yarn", "prettier", "--write", *files], cwd=FRONTEND_DIRECTORY)
+
+
+def cmd_js_lint(args):
+    run_verbose(["yarn", "lint:js"], cwd=FRONTEND_DIRECTORY)
 
 
 def cmd_js_build(args):
@@ -151,11 +155,14 @@ def get_parser():
     subparsers.add_parser("js-build", help="Build frontend.").set_defaults(
         func=cmd_js_build
     )
-    js_lint_parser = subparsers.add_parser("js-format", help="Format frontend files")
-    js_lint_parser.add_argument(
+    js_format_parser = subparsers.add_parser("js-format", help="Format frontend files")
+    js_format_parser.add_argument(
         "files", nargs=argparse.REMAINDER, help="Files to check"
     )
-    js_lint_parser.set_defaults(func=cmd_js_format)
+    js_format_parser.set_defaults(func=cmd_js_format)
+    subparsers.add_parser("js-lint", help="Lint frontend code.").set_defaults(
+        func=cmd_js_lint
+    )
     subparsers.add_parser("js-test", help="Run unit tests for frontend.").set_defaults(
         func=lambda _: run_verbose(["yarn", "test"], cwd=FRONTEND_DIRECTORY)
     )

@@ -3,18 +3,18 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Page, expect
 
+from e2e.e2e_selectors import (
+    BENZENE_TEMPLATE,
+    CANVAS_ATOMS,
+    COMPONENT_TEST_ID,
+    MACROMOLECULES_TOGGLE,
+    MOLECULES_CANVAS,
+    MOLECULES_UNDO_BUTTON,
+    SELECTION_TOOL,
+)
 from e2e.e2e_utils import StreamlitRunner
 
-# Ketcher 3 renders both the molecules and macromolecules editors in the DOM,
-# so selectors must target the molecules one.
-SELECTION_TOOL = "[data-testid=left-toolbar-buttons] [data-testid=select-rectangle]"
-MOLECULES_CANVAS = "[data-testid=ketcher-canvas][data-canvasmode=molecules-mode]"
-BENZENE_TEMPLATE = "[data-testid=template-0]"
-MACROMOLECULES_TOGGLE = "[data-testid=polymer-toggler]"
-CANVAS_ATOMS = f"{MOLECULES_CANVAS} [data-testid=atom]"
 ETHANOL_ATOM_COUNT = 3
-# Root element of the component, mounted directly in the app page.
-COMPONENT_TEST_ID = "streamlit-ketcher"
 
 ROOT_DIRECTORY = Path(__file__).parent.parent.absolute()
 BASIC_EXAMPLE_FILE = ROOT_DIRECTORY / "e2e" / "apps" / "basic_example.py"
@@ -56,9 +56,10 @@ def test_should_return_user_input(page: Page, assert_snapshot):
     # Assert benzene is visible
     assert_snapshot(component.screenshot(), "test_should_return_user_input.png")
 
-    # Assert output contains benzen
-    component.get_by_role("button", name="Apply").click()
+    # Live update sends the drawing without an Apply button, and settles
+    expect(component.get_by_role("button", name="Apply")).to_have_count(0)
     expect(page.get_by_text("Smile code")).to_have_text("Smile code: C1C=CC=CC=1")
+    expect(page.get_by_role("img", name="Running...")).to_be_hidden()
 
 
 def test_should_render_user_input(page: Page, assert_snapshot):
@@ -70,20 +71,16 @@ def test_should_render_user_input(page: Page, assert_snapshot):
 
     # Ketcher shows a loading spinner before it draws the molecule
     expect(component.locator(CANVAS_ATOMS)).to_have_count(ETHANOL_ATOM_COUNT)
-    component.locator(SELECTION_TOOL).click()
+    # Ketcher updates its toolbar after drawing the molecule
+    expect(component.locator(MOLECULES_UNDO_BUTTON)).to_be_enabled()
+    # Clicking the already active selection tool would open its sub-menu
     assert_snapshot(component.screenshot(), "test_should_render_user_input.png")
 
     # Assert output contains user input
     expect(page.get_by_text("Smile code")).to_have_text("Smile code: CCO")
 
-    # Clear output
+    # Clearing the canvas empties the output without an Apply button
     component.get_by_role("button", name="Reset").click()
-    expect(page.get_by_role("img", name="Running...")).to_be_hidden()
-    # Wait for the value to be set in Ketcher.
-    component.locator(SELECTION_TOOL).click()
-    # Pass value to Streamlit
-    component.get_by_role("button", name="Apply").click()
-    expect(page.get_by_role("img", name="Running...")).to_be_hidden()
-
-    # Assert output is empty
+    expect(component.locator(CANVAS_ATOMS)).to_have_count(0)
     expect(page.get_by_text("Smile code")).to_have_text("Smile code: ````")
+    expect(page.get_by_role("img", name="Running...")).to_be_hidden()

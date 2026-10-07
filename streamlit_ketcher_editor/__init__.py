@@ -5,8 +5,9 @@ from typing import Any, Literal
 
 import streamlit as st
 
-# Declared in streamlit_ketcher/pyproject.toml; paths are relative to its asset_dir.
-_COMPONENT_NAME = "streamlit_ketcher.ketcher"
+# Declared in streamlit_ketcher_editor/pyproject.toml; paths are relative to
+# its asset_dir.
+_COMPONENT_NAME = "streamlit_ketcher_editor.ketcher"
 _COMPONENT_JS = "index.js"
 _COMPONENT_CSS = "index.css"
 _MOLECULE_STATE_KEY = "molecule"
@@ -71,11 +72,11 @@ def _validate_height(height: int) -> None:
         raise ValueError(f"Height must be a positive integer, got: {height!r}")
 
 
-def _validate_macromolecules(macromolecules: bool) -> None:
-    """Raise ValueError if macromolecules is not a boolean."""
-    if not isinstance(macromolecules, bool):
+def _validate_boolean(name: str, value: bool) -> None:
+    """Raise ValueError if the value is not a boolean."""
+    if not isinstance(value, bool):
         # ValueError, not TypeError, to match the other st_ketcher validators.
-        raise ValueError(f"Macromolecules must be a boolean, got: {macromolecules!r}")  # noqa: TRY004
+        raise ValueError(f"{name} must be a boolean, got: {value!r}")  # noqa: TRY004
 
 
 def st_ketcher(
@@ -84,6 +85,7 @@ def st_ketcher(
     height: int = DEFAULT_HEIGHT,
     molecule_format: MoleculeFormatType = MoleculeFormat.SMILES.value,
     macromolecules: bool = False,
+    live_update: bool = True,
     key: str | None = None,
 ) -> str | None:
     """Create a new instance of the Ketcher editor.
@@ -107,6 +109,11 @@ def st_ketcher(
     macromolecules: bool
         Whether to show Ketcher's switch to the Macromolecules mode
         (RNA, DNA and peptides). False by default.
+    live_update: bool
+        Whether to send the drawing to Python while the user draws. Each
+        change, debounced by 300 ms, reruns the script. Set it to False to
+        show an Apply button and send the drawing only when it is clicked.
+        True by default.
     key: str or None
         An optional key that uniquely identifies this component. If this is
         None, and the component's arguments are changed, the component will
@@ -121,12 +128,13 @@ def st_ketcher(
     ------
     ValueError
         If ``molecule_format`` is not one of the supported formats, or
-        ``height`` is not a positive integer, or ``macromolecules`` is not
-        a boolean.
+        ``height`` is not a positive integer, or ``macromolecules`` or
+        ``live_update`` is not a boolean.
     """
     _validate_molecule_format(molecule_format)
     _validate_height(height)
-    _validate_macromolecules(macromolecules)
+    _validate_boolean("Macromolecules", macromolecules)
+    _validate_boolean("Live update", live_update)
     result = _render_component(
         key=key,
         data={
@@ -134,6 +142,7 @@ def st_ketcher(
             "height": height,
             "molecule_format": molecule_format,
             "macromolecules": macromolecules,
+            "live_update": live_update,
         },
         default={_MOLECULE_STATE_KEY: value},
         on_molecule_change=_ignore_molecule_change,

@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
-// Must match _COMPONENT_JS / _COMPONENT_CSS in streamlit_ketcher/__init__.py.
+// Must match _COMPONENT_JS / _COMPONENT_CSS in streamlit_ketcher_editor/__init__.py.
 const ENTRY_FILE_NAME = "index.js";
 const CSS_FILE_NAME = "index";
 
@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     // Served by Streamlit as the component's asset_dir.
-    outDir: "../streamlit_ketcher/frontend",
+    outDir: "../streamlit_ketcher_editor/frontend",
     emptyOutDir: true,
     lib: {
       entry: "src/index.tsx",
