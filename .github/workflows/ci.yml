@@ -95,6 +95,16 @@ jobs:
           tar -tvf dist/streamlit_ketcher_editor-*.tar.gz | grep NOTICES
           tar -tvf dist/streamlit_ketcher_editor-*.tar.gz | grep py.typed
           unzip -l dist/streamlit_ketcher_editor-*.whl | grep py.typed
+          unexpected_entries=$(
+            unzip -Z1 dist/streamlit_ketcher_editor-*.whl |
+              grep -vE '^streamlit_ketcher_editor(/|-[^/]+\.dist-info/)' ||
+              true
+          )
+          if [ -n "$unexpected_entries" ]; then
+            echo "Unexpected files in the wheel:"
+            echo "$unexpected_entries"
+            exit 1
+          fi
 
       - run: mkdir -p "$(yarn cache dir)"
 
