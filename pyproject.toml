@@ -28,11 +28,14 @@ dependencies = [
 ]
 requires-python = ">=3.14"
 
-[tool.setuptools]
-packages = {find={}}
+[tool.setuptools.packages.find]
+include = ["streamlit_ketcher_editor*"]
 
 [tool.setuptools.package-data]
 streamlit_ketcher_editor = ["py.typed"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
 
 [tool.mypy]
 files = ["streamlit_ketcher_editor"]
