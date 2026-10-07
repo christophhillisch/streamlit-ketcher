@@ -70,10 +70,18 @@ const useMoleculeLoader = (
   // Ketcher runs overlapping setMolecule calls concurrently and an older load
   // can win, so each load waits for the previous one.
   const previousLoadRef = useRef<Promise<void>>(Promise.resolve());
+  const loadedKetcherRef = useRef<Ketcher | null>(null);
 
   useEffect(() => {
     // Python reruns with the value just sent; reloading it would reset the canvas.
     if (!ketcher || shouldSkipMolecule(molecule)) {
+      return;
+    }
+    const isFreshEditor = loadedKetcherRef.current !== ketcher;
+    loadedKetcherRef.current = ketcher;
+    // A fresh editor is already empty. Loading "" would only cover the canvas
+    // until the Indigo engine is ready and discard anything drawn meanwhile.
+    if (isFreshEditor && !molecule) {
       return;
     }
     previousLoadRef.current = previousLoadRef.current
