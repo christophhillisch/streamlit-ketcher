@@ -129,6 +129,36 @@ run the *Continuous Integration* workflow from the Actions tab with
 its `Snapshots` artifact.
 See [frontend/README.md](frontend/README.md) for frontend hot reload.
 
+## Releasing
+
+Releases are published by the [*Release*](.github/workflows/release.yml)
+workflow with PyPI
+[trusted publishing](https://docs.pypi.org/trusted-publishers/), so no API
+token is stored anywhere.
+
+1. Bump `version` in `pyproject.toml` and add a `CHANGELOG.md` entry.
+2. Optionally, run the *Release* workflow from the Actions tab to publish the
+   build to TestPyPI first.
+3. Tag the commit on `main` and push the tag:
+
+   ```shell
+   git tag v0.1.0
+   git push origin v0.1.0
+   ```
+
+   The workflow checks that the tag matches the package version, publishes
+   to PyPI and creates a GitHub release with the built files attached.
+
+Trusted publishers must be configured once on
+[PyPI](https://pypi.org/manage/account/publishing/) and
+[TestPyPI](https://test.pypi.org/manage/account/publishing/) for the project
+`streamlit-ketcher-editor`, repository `christophhillisch/streamlit-ketcher`,
+workflow `release.yml` and environments `pypi` and `testpypi`.
+
+If the workflow cannot be used, `./dev.py package` followed by
+`./dev.py py-distribute --repository pypi` uploads the files by hand with
+twine and a token from your `~/.pypirc`.
+
 ## Demo
 
 The [live demo][share_link] runs [streamlit_app.py](streamlit_app.py) on
