@@ -1,4 +1,5 @@
-KETCHER_IFRAME = r'iframe[title="streamlit_ketcher_editor\.streamlit_ketcher_editor"]'
+# Root element of the component, mounted directly in the app page.
+COMPONENT_TEST_ID = "streamlit-ketcher"
 
 # Ketcher 3 renders both the molecules and macromolecules editors in the DOM,
 # so selectors must target the visible (molecules) one.

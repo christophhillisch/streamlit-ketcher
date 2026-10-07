@@ -1,7 +1,7 @@
 # streamlit-ketcher-editor frontend
 
 React 19 + [Ketcher](https://github.com/epam/ketcher), built with [Vite](https://vite.dev)
-and tested with [Vitest](https://vitest.dev).
+(library mode) and tested with [Vitest](https://vitest.dev).
 
 ## Requirements
 
@@ -13,10 +13,10 @@ and tested with [Vitest](https://vitest.dev).
 | Command          | What it does                                                        |
 | ---------------- | ------------------------------------------------------------------- |
 | `yarn install`   | Install dependencies                                                |
-| `yarn start`     | Start the dev server with hot reload on http://localhost:3000       |
+| `yarn start`     | Rebuild into `../streamlit_ketcher_editor/frontend` on every change |
 | `yarn test`      | Run unit tests in watch mode (`yarn test --run` for a single run)   |
 | `yarn typecheck` | Type-check with TypeScript                                          |
-| `yarn build`     | Type-check and build into `../streamlit_ketcher_editor/frontend`           |
+| `yarn build`     | Type-check and build into `../streamlit_ketcher_editor/frontend`    |
 | `yarn format`    | Format sources with Prettier                                        |
 | `yarn lint:js`   | Lint with ESLint (typescript-eslint and React hooks rules)          |
 
@@ -29,8 +29,10 @@ Remove the alias once typescript-eslint supports TypeScript 7.
 
 ## Developing against a Streamlit app
 
-The Python package serves the production build by default. To use the dev
-server instead, start it and point the package at it:
+The component uses [Streamlit Components v2](https://docs.streamlit.io/develop/api-reference/custom-components):
+Streamlit serves the build output in `../streamlit_ketcher_editor/frontend` (declared in
+`streamlit_ketcher_editor/pyproject.toml`) and reloads it when the files change. There is
+no separate dev server. Run the watcher and the app side by side:
 
 ```shell
 yarn start
@@ -38,8 +40,7 @@ yarn start
 
 ```shell
 # In a second terminal, from the repository root
-STREAMLIT_KETCHER_EDITOR_DEV_SERVER_URL=http://localhost:3000 streamlit run streamlit_app.py
+streamlit run streamlit_app.py
 ```
 
-On Windows PowerShell, set the variable with
-`$env:STREAMLIT_KETCHER_EDITOR_DEV_SERVER_URL = "http://localhost:3000"` first.
+Reload the browser tab after a rebuild to pick up the new code.

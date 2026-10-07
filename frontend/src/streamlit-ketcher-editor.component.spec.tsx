@@ -8,6 +8,7 @@ import {
 } from "./streamlit-ketcher-editor.component";
 
 const EDITOR_HEIGHT = 500;
+const STATIC_RESOURCES_URL = "http://localhost/assets";
 
 const { editorMock, registeredKetcherIds } = vi.hoisted(() => ({
   editorMock: vi.fn<(props: StreamlitKetcherEditorProps) => null>(() => null),
@@ -15,7 +16,7 @@ const { editorMock, registeredKetcherIds } = vi.hoisted(() => ({
 }));
 
 vi.mock("ketcher-react", () => ({ Editor: editorMock }));
-vi.mock("ketcher-standalone/dist/binaryWasm", () => ({
+vi.mock("ketcher-standalone", () => ({
   StandaloneStructServiceProvider: class {},
 }));
 vi.mock("ketcher-core", () => ({
@@ -53,6 +54,7 @@ describe("StreamlitKetcherEditor", () => {
       render(
         <StreamlitKetcherEditor
           height={EDITOR_HEIGHT}
+          staticResourcesUrl={STATIC_RESOURCES_URL}
           errorHandler={vi.fn()}
           disableMacromoleculesEditor={disableMacromoleculesEditor}
         />,
@@ -73,6 +75,7 @@ describe("StreamlitKetcherEditor", () => {
       <StrictMode>
         <StreamlitKetcherEditor
           height={EDITOR_HEIGHT}
+          staticResourcesUrl={STATIC_RESOURCES_URL}
           errorHandler={vi.fn()}
           onInit={handleInit}
         />

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef } from "react";
-import { Streamlit } from "streamlit-component-lib";
 import { Ketcher } from "ketcher-core";
 
 // Every value sent to Streamlit triggers a full rerun of the Python script.
@@ -44,6 +43,7 @@ export const useLiveUpdate = (
   ketcher: Ketcher | null,
   isEnabled: boolean,
   serializeCurrentMolecule: () => Promise<string | null>,
+  onMoleculeChange: (serializedMolecule: string) => void,
 ): ILiveUpdate => {
   const lastSentMoleculeRef = useRef<string | null>(null);
 
@@ -54,9 +54,9 @@ export const useLiveUpdate = (
       serializedMolecule !== lastSentMoleculeRef.current;
     if (hasChanged) {
       lastSentMoleculeRef.current = serializedMolecule;
-      Streamlit.setComponentValue(serializedMolecule);
+      onMoleculeChange(serializedMolecule);
     }
-  }, [serializeCurrentMolecule]);
+  }, [serializeCurrentMolecule, onMoleculeChange]);
 
   useDebouncedChangeListener(ketcher, isEnabled, sendChangedMolecule);
 

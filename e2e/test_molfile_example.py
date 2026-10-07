@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Page, expect
 
-from e2e.e2e_selectors import CANVAS_ATOMS, KETCHER_IFRAME, SELECTION_TOOL
+from e2e.e2e_selectors import CANVAS_ATOMS, COMPONENT_TEST_ID, SELECTION_TOOL
 from e2e.e2e_utils import StreamlitRunner
 
 ETHANOL_ATOM_COUNT = 3
@@ -40,11 +40,11 @@ def go_to_app(page: Page, streamlit_app: StreamlitRunner):
 
 
 def test_should_return_molfile(page: Page):
-    frame_0 = page.frame_locator(KETCHER_IFRAME)
+    component = page.get_by_test_id(COMPONENT_TEST_ID)
 
     # Wait to Ketcher to load
-    frame_0.locator(SELECTION_TOOL).click()
-    expect(frame_0.locator(CANVAS_ATOMS)).to_have_count(ETHANOL_ATOM_COUNT)
+    component.locator(SELECTION_TOOL).click()
+    expect(component.locator(CANVAS_ATOMS)).to_have_count(ETHANOL_ATOM_COUNT)
 
     # Live update sends the loaded molecule without an Apply button
     output = page.locator(MOLFILE_OUTPUT)

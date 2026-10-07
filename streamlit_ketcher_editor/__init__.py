@@ -1,23 +1,37 @@
-import os
+from collections.abc import Callable
 from enum import Enum
-from pathlib import Path
-from typing import Literal
+from functools import cache
+from typing import Any, Literal
 
-import streamlit.components.v1 as components
+import streamlit as st
 
-# Set to the Vite dev server URL (e.g. http://localhost:3000) to develop the
-# frontend with hot reload instead of serving the production build.
-_DEV_SERVER_URL = os.environ.get("STREAMLIT_KETCHER_EDITOR_DEV_SERVER_URL")
+# Declared in streamlit_ketcher_editor/pyproject.toml; paths are relative to
+# its asset_dir.
+_COMPONENT_NAME = "streamlit_ketcher_editor.ketcher"
+_COMPONENT_JS = "index.js"
+_COMPONENT_CSS = "index.css"
+_MOLECULE_STATE_KEY = "molecule"
 
-if _DEV_SERVER_URL:
-    _render_component = components.declare_component(
-        "streamlit_ketcher_editor", url=_DEV_SERVER_URL
+
+@cache
+def _get_component() -> Callable[..., Any]:
+    """Register the frontend once per process, on first use."""
+    return st.components.v2.component(
+        _COMPONENT_NAME,
+        js=_COMPONENT_JS,
+        css=_COMPONENT_CSS,
+        # Ketcher's pop-ups render into document.body, outside a shadow root.
+        isolate_styles=False,
     )
-else:
-    build_dir = Path(__file__).parent / "frontend"
-    _render_component = components.declare_component(
-        "streamlit_ketcher_editor", path=str(build_dir)
-    )
+
+
+def _render_component(**kwargs: Any) -> Any:
+    """Mount the Ketcher component and return its state."""
+    return _get_component()(**kwargs)
+
+
+def _ignore_molecule_change() -> None:
+    """Register the molecule state key so it is always present in the result."""
 
 
 class MoleculeFormat(Enum):
@@ -76,6 +90,10 @@ def st_ketcher(
 ) -> str | None:
     """Create a new instance of the Ketcher editor.
 
+    Only one editor can be shown per page: Ketcher's standalone mode supports a
+    single working instance per browser page. Any additional editor on the same
+    page shows a notice instead until the first one is removed.
+
     Parameters
     ----------
     value: str
@@ -117,13 +135,17 @@ def st_ketcher(
     _validate_height(height)
     _validate_boolean("Macromolecules", macromolecules)
     _validate_boolean("Live update", live_update)
-    molecule: str | None = _render_component(
-        molecule=value,
-        height=height,
-        molecule_format=molecule_format,
-        macromolecules=macromolecules,
-        live_update=live_update,
+    result = _render_component(
         key=key,
-        default=value,
+        data={
+            "molecule": value,
+            "height": height,
+            "molecule_format": molecule_format,
+            "macromolecules": macromolecules,
+            "live_update": live_update,
+        },
+        default={_MOLECULE_STATE_KEY: value},
+        on_molecule_change=_ignore_molecule_change,
     )
+    molecule: str | None = result.get(_MOLECULE_STATE_KEY)
     return molecule
