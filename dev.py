@@ -137,7 +137,8 @@ def get_parser():
         "py-build", help="Create Python distribution files in dist/."
     ).set_defaults(func=cmd_py_build)
     py_distribute_parser = subparsers.add_parser(
-        "py-distribute", help="Upload our package to PyPI"
+        "py-distribute",
+        help="Upload our package by hand (fallback for the Release workflow)",
     )
     py_distribute_parser.add_argument(
         "-r",

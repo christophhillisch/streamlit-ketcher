@@ -1,0 +1,145 @@
+---
+name: Release
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+env:
+  FORCE_COLOR: true
+  PYTHON_VERSION: "3.14"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          cache: 'yarn'
+          node-version-file: '.nvmrc'
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Check that the tag matches the package version
+        if: github.ref_type == 'tag'
+        run: |
+          package_version="$(python -c 'import tomllib
+          with open("pyproject.toml", "rb") as file:
+              print(tomllib.load(file)["project"]["version"])')"
+          if [ "v${package_version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match" \
+              "the version ${package_version} in pyproject.toml"
+            exit 1
+          fi
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+
+      - name: Build package
+        run: |
+          python -m pip install --upgrade build twine
+          python -m build
+          python -m twine check --strict dist/*
+
+      - name: Verify package
+        run: |
+          tar -tzf dist/streamlit_ketcher_editor-*.tar.gz | grep NOTICES
+          tar -tzf dist/streamlit_ketcher_editor-*.tar.gz \
+            | grep streamlit_ketcher_editor/frontend/index.html
+          unzip -l dist/streamlit_ketcher_editor-*.whl \
+            | grep streamlit_ketcher_editor/frontend/index.html
+
+      - name: Upload distribution files
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish-testpypi:
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/streamlit-ketcher-editor/
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download distribution files
+        uses: actions/download-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+  publish-pypi:
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: pypi
+      url: https://pypi.org/project/streamlit-ketcher-editor/
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download distribution files
+        uses: actions/download-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    needs: publish-pypi
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download distribution files
+        uses: actions/download-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub release
+        run: >-
+          gh release create "${GITHUB_REF_NAME}" dist/*
+          --repo "${GITHUB_REPOSITORY}"
+          --title "${GITHUB_REF_NAME}"
+          --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
