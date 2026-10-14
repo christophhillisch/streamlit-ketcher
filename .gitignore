@@ -15,3 +15,6 @@ venv/
 
 # Local Claude Code instructions
 CLAUDE.md
+
+# Screenshots that differed from their e2e baseline
+e2e/__snapshots__/failures/
