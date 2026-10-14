@@ -10,11 +10,20 @@ const CHANGE_COUNT = 5;
 interface IFakeKetcher {
   ketcher: Ketcher;
   emitChange: () => void;
+  setTemplatePreview: (isShown: boolean) => void;
   unsubscribe: ReturnType<typeof vi.fn>;
 }
 
+interface IFakeStructureItem {
+  isPreview: boolean;
+}
+
+const PREVIEW_ATOM_ID = 1;
+
 const createFakeKetcher = (): IFakeKetcher => {
   const handlers = new Set<() => void>();
+  const atoms = new Map<number, IFakeStructureItem>();
+  const bonds = new Map<number, IFakeStructureItem>();
   const unsubscribe = vi.fn((_eventName: string, handler: () => void) =>
     handlers.delete(handler),
   );
@@ -24,10 +33,15 @@ const createFakeKetcher = (): IFakeKetcher => {
       return handler;
     },
     unsubscribe,
+    struct: () => ({ atoms, bonds }),
   };
   const ketcher = { editor } as unknown as Ketcher;
   const emitChange = () => handlers.forEach((handler) => handler());
-  return { ketcher, emitChange, unsubscribe };
+  const setTemplatePreview = (isShown: boolean) =>
+    isShown
+      ? atoms.set(PREVIEW_ATOM_ID, { isPreview: true })
+      : atoms.delete(PREVIEW_ATOM_ID);
+  return { ketcher, emitChange, setTemplatePreview, unsubscribe };
 };
 
 const advancePastDebounce = () =>
@@ -80,6 +94,40 @@ describe("useLiveUpdate", () => {
 
     expect(result.current.isLastSentMolecule(BENZENE)).toBe(true);
     expect(result.current.isLastSentMolecule("CCO")).toBe(false);
+  });
+
+  it("should wait until the template preview is gone before sending", async () => {
+    const { ketcher, emitChange, setTemplatePreview } = createFakeKetcher();
+    renderHook(() => useLiveUpdate(ketcher, true, async () => BENZENE));
+
+    emitChange();
+    setTemplatePreview(true);
+    await advancePastDebounce();
+    await advancePastDebounce();
+    expect(Streamlit.setComponentValue).not.toHaveBeenCalled();
+
+    setTemplatePreview(false);
+    await advancePastDebounce();
+
+    expect(Streamlit.setComponentValue).toHaveBeenCalledExactlyOnceWith(
+      BENZENE,
+    );
+  });
+
+  it("should stop waiting for the template preview on unmount", async () => {
+    const { ketcher, emitChange, setTemplatePreview } = createFakeKetcher();
+    const { unmount } = renderHook(() =>
+      useLiveUpdate(ketcher, true, async () => BENZENE),
+    );
+
+    emitChange();
+    setTemplatePreview(true);
+    await advancePastDebounce();
+    unmount();
+    setTemplatePreview(false);
+    await advancePastDebounce();
+
+    expect(Streamlit.setComponentValue).not.toHaveBeenCalled();
   });
 
   it("should not send anything when disabled", async () => {

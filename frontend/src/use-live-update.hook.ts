@@ -11,6 +11,15 @@ interface ILiveUpdate {
   isLastSentMolecule: (molecule: string | null) => boolean;
 }
 
+// Template tools add a ghost copy of the template under the cursor as real
+// atoms flagged `isPreview`, and every Ketcher export includes them.
+const hasTemplatePreview = (ketcher: Ketcher): boolean => {
+  const { atoms, bonds } = ketcher.editor.struct();
+  return [...atoms.values(), ...bonds.values()].some(
+    (structureItem) => structureItem.isPreview,
+  );
+};
+
 const useDebouncedChangeListener = (
   ketcher: Ketcher | null,
   isEnabled: boolean,
@@ -21,16 +30,21 @@ const useDebouncedChangeListener = (
       return;
     }
     let debounceTimer: ReturnType<typeof setTimeout> | undefined;
-    const handleChange = (): void => {
+    // Showing or hiding the preview emits no change event, so poll until it is gone.
+    const sendWithoutPreview = (): void => {
+      if (hasTemplatePreview(ketcher)) {
+        scheduleSend();
+        return;
+      }
+      void onDebouncedChange();
+    };
+    const scheduleSend = (): void => {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(
-        () => void onDebouncedChange(),
-        LIVE_UPDATE_DEBOUNCE_MS,
-      );
+      debounceTimer = setTimeout(sendWithoutPreview, LIVE_UPDATE_DEBOUNCE_MS);
     };
     const subscriber: unknown = ketcher.editor.subscribe(
       CHANGE_EVENT,
-      handleChange,
+      scheduleSend,
     );
 
     return () => {
