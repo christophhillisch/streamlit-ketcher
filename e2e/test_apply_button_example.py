@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Page, expect
 
-from e2e.e2e_selectors import CANVAS_ATOMS, KETCHER_IFRAME
+from e2e.e2e_selectors import CANVAS_ATOMS, COMPONENT_TEST_ID
 from e2e.e2e_utils import StreamlitRunner
 
 ETHANOL_ATOM_COUNT = 3
@@ -26,12 +26,12 @@ def go_to_app(page: Page, streamlit_app: StreamlitRunner):
 
 
 def test_should_send_changes_only_on_apply(page: Page):
-    frame_0 = page.frame_locator(KETCHER_IFRAME)
-    expect(frame_0.locator(CANVAS_ATOMS)).to_have_count(ETHANOL_ATOM_COUNT)
+    component = page.get_by_test_id(COMPONENT_TEST_ID)
+    expect(component.locator(CANVAS_ATOMS)).to_have_count(ETHANOL_ATOM_COUNT)
 
-    frame_0.get_by_role("button", name="Reset").click()
-    expect(frame_0.locator(CANVAS_ATOMS)).to_have_count(0)
+    component.get_by_role("button", name="Reset").click()
+    expect(component.locator(CANVAS_ATOMS)).to_have_count(0)
     expect(page.get_by_text("Smile code")).to_have_text("Smile code: CCO")
 
-    frame_0.get_by_role("button", name="Apply").click()
+    component.get_by_role("button", name="Apply").click()
     expect(page.get_by_text("Smile code")).to_have_text("Smile code: ````")

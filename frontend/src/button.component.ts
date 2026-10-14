@@ -1,59 +1,55 @@
 import styled from "@emotion/styled";
-import { transparentize } from "color2k";
-import { FixedTheme } from "./theme";
+import {
+  BACKGROUND_COLOR,
+  BORDER_COLOR,
+  BUTTON_RADIUS,
+  PRIMARY_COLOR,
+  TEXT_COLOR,
+} from "./streamlit-theme";
 
-interface ButtonProps {
-  theme: FixedTheme;
-}
+const FOCUS_RING_COLOR = `color-mix(in srgb, ${PRIMARY_COLOR} 50%, transparent)`;
+const DISABLED_OPACITY = 0.4;
 
-export const Button = styled.button<ButtonProps>(({ theme }) => ({
-  // StyledBaseButton styles
+export const Button = styled.button({
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  // fontWeight: theme.fontWeights.normal,
   fontWeight: 400,
-  // padding: `${theme.spacing.xs} ${theme.spacing.md}`,
+  fontFamily: "inherit",
+  fontSize: "inherit",
   padding: "0.25rem 0.75rem",
-  // borderRadius: theme.radii.md,
-  borderRadius: "0.25rem",
+  borderRadius: BUTTON_RADIUS,
   margin: 0,
-  // lineHeight: theme.lineHeights.base,
   lineHeight: 1.6,
-  color: "inherit",
-  // width: fluidWidth ? "100%" : "auto",
+  color: TEXT_COLOR,
   width: "auto",
   userSelect: "none",
-  "&:focus": {
-    boxShadow: `0 0 0 0.2rem ${transparentize(theme.primaryColor, 0.5)}`,
+  cursor: "pointer",
+  backgroundColor: BACKGROUND_COLOR,
+  border: `1px solid ${BORDER_COLOR}`,
+  "&:hover, &:focus-visible": {
+    borderColor: PRIMARY_COLOR,
+    color: PRIMARY_COLOR,
+  },
+  "&:focus-visible": {
+    boxShadow: `0 0 0 0.2rem ${FOCUS_RING_COLOR}`,
     outline: "none",
   },
-
-  // StyledSecondaryButton styles
-  backgroundColor: theme.lightenedBg05,
-  border: `1px solid ${theme.fadedText10}`,
-  "&:hover": {
-    borderColor: theme.primaryColor,
-    color: theme.primaryColor,
-  },
   "&:active": {
-    color: "white",
-    borderColor: theme.primaryColor,
-    backgroundColor: theme.primaryColor,
-  },
-  "&:focus:not(:active)": {
-    borderColor: theme.primaryColor,
-    color: theme.primaryColor,
+    color: BACKGROUND_COLOR,
+    backgroundColor: PRIMARY_COLOR,
   },
   "&:disabled, &:disabled:hover, &:disabled:active": {
-    borderColor: theme.fadedText10,
+    borderColor: BORDER_COLOR,
     backgroundColor: "transparent",
-    color: theme.fadedText40,
+    color: TEXT_COLOR,
+    opacity: DISABLED_OPACITY,
     cursor: "not-allowed",
   },
-}));
-export const ButtonContainer = styled.div(() => ({
+});
+
+export const ButtonContainer = styled.div({
   display: "flex",
   justifyContent: "space-between",
   padding: "1rem 0",
-}));
+});

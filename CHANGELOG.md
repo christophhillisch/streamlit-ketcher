@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Breaking changes
+
+- The editor renders directly in the app page through Streamlit Components
+  v2 instead of an iframe.
+- Only one editor works per page, because Ketcher's standalone mode supports a
+  single instance per page (epam/ketcher#6506). Any further editor shows a
+  notice instead.
+- There is no separate dev server, and `STREAMLIT_KETCHER_EDITOR_DEV_SERVER_URL`
+  is gone. Run `yarn start` in `frontend/` to rebuild on every change.
+
 ## 0.1.0
 
 First release of this fork of

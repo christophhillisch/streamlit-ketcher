@@ -62,10 +62,12 @@ jobs:
       - name: Verify package
         run: |
           tar -tzf dist/streamlit_ketcher_editor-*.tar.gz | grep NOTICES
-          tar -tzf dist/streamlit_ketcher_editor-*.tar.gz \
-            | grep streamlit_ketcher_editor/frontend/index.html
-          unzip -l dist/streamlit_ketcher_editor-*.whl \
-            | grep streamlit_ketcher_editor/frontend/index.html
+          for component_file in frontend/index.js pyproject.toml; do
+            tar -tzf dist/streamlit_ketcher_editor-*.tar.gz \
+              | grep "streamlit_ketcher_editor/${component_file}"
+            unzip -l dist/streamlit_ketcher_editor-*.whl \
+              | grep "streamlit_ketcher_editor/${component_file}"
+          done
 
       - name: Upload distribution files
         uses: actions/upload-artifact@v7

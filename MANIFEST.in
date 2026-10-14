@@ -1,4 +1,5 @@
 recursive-include streamlit_ketcher_editor/frontend *
 include NOTICES
 include streamlit_ketcher_editor/py.typed
+include streamlit_ketcher_editor/pyproject.toml
 include CHANGELOG.md

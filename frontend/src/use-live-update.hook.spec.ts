@@ -1,11 +1,11 @@
 import { act, renderHook } from "@testing-library/react";
 import { Ketcher } from "ketcher-core";
-import { Streamlit } from "streamlit-component-lib";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LIVE_UPDATE_DEBOUNCE_MS, useLiveUpdate } from "./use-live-update.hook";
 
 const BENZENE = "C1C=CC=CC=1";
 const CHANGE_COUNT = 5;
+const onMoleculeChange = vi.fn();
 
 interface IFakeKetcher {
   ketcher: Ketcher;
@@ -36,7 +36,6 @@ const advancePastDebounce = () =>
 describe("useLiveUpdate", () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.spyOn(Streamlit, "setComponentValue");
   });
 
   afterEach(() => vi.useRealTimers());
@@ -44,35 +43,35 @@ describe("useLiveUpdate", () => {
   it("should send the molecule once after the debounce", async () => {
     const { ketcher, emitChange } = createFakeKetcher();
     const serialize = vi.fn(async () => BENZENE);
-    renderHook(() => useLiveUpdate(ketcher, true, serialize));
+    renderHook(() => useLiveUpdate(ketcher, true, serialize, onMoleculeChange));
 
     for (let index = 0; index < CHANGE_COUNT; index++) {
       emitChange();
     }
-    expect(Streamlit.setComponentValue).not.toHaveBeenCalled();
+    expect(onMoleculeChange).not.toHaveBeenCalled();
     await advancePastDebounce();
 
-    expect(Streamlit.setComponentValue).toHaveBeenCalledExactlyOnceWith(
-      BENZENE,
-    );
+    expect(onMoleculeChange).toHaveBeenCalledExactlyOnceWith(BENZENE);
   });
 
   it("should not send the same molecule twice", async () => {
     const { ketcher, emitChange } = createFakeKetcher();
-    renderHook(() => useLiveUpdate(ketcher, true, async () => BENZENE));
+    renderHook(() =>
+      useLiveUpdate(ketcher, true, async () => BENZENE, onMoleculeChange),
+    );
 
     emitChange();
     await advancePastDebounce();
     emitChange();
     await advancePastDebounce();
 
-    expect(Streamlit.setComponentValue).toHaveBeenCalledOnce();
+    expect(onMoleculeChange).toHaveBeenCalledOnce();
   });
 
   it("should recognise the last sent molecule as an echo from Python", async () => {
     const { ketcher, emitChange } = createFakeKetcher();
     const { result } = renderHook(() =>
-      useLiveUpdate(ketcher, true, async () => BENZENE),
+      useLiveUpdate(ketcher, true, async () => BENZENE, onMoleculeChange),
     );
 
     emitChange();
@@ -84,18 +83,20 @@ describe("useLiveUpdate", () => {
 
   it("should not send anything when disabled", async () => {
     const { ketcher, emitChange } = createFakeKetcher();
-    renderHook(() => useLiveUpdate(ketcher, false, async () => BENZENE));
+    renderHook(() =>
+      useLiveUpdate(ketcher, false, async () => BENZENE, onMoleculeChange),
+    );
 
     emitChange();
     await advancePastDebounce();
 
-    expect(Streamlit.setComponentValue).not.toHaveBeenCalled();
+    expect(onMoleculeChange).not.toHaveBeenCalled();
   });
 
   it("should unsubscribe and cancel the pending send on unmount", async () => {
     const { ketcher, emitChange, unsubscribe } = createFakeKetcher();
     const { unmount } = renderHook(() =>
-      useLiveUpdate(ketcher, true, async () => BENZENE),
+      useLiveUpdate(ketcher, true, async () => BENZENE, onMoleculeChange),
     );
 
     emitChange();
@@ -103,6 +104,6 @@ describe("useLiveUpdate", () => {
     await advancePastDebounce();
 
     expect(unsubscribe).toHaveBeenCalledOnce();
-    expect(Streamlit.setComponentValue).not.toHaveBeenCalled();
+    expect(onMoleculeChange).not.toHaveBeenCalled();
   });
 });

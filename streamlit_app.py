@@ -2,44 +2,58 @@ from pathlib import Path
 
 import streamlit as st
 
-from streamlit_ketcher_editor import st_ketcher
+from streamlit_ketcher_editor import SUPPORTED_MOLECULE_FORMATS, st_ketcher
 
 DEMO_DIRECTORY = Path(__file__).parent / "demo"
-
-st.set_page_config(layout="wide")
-st.title("`streamlit-ketcher-editor`")
-
-st.header("Component with user input")
-DEFAULT_MOL = (
+DEFAULT_MOLECULE = (
     r"C[N+]1=CC=C(/C2=C3\C=CC(=N3)/C(C3=CC=CC(C(N)=O)=C3)=C3/C=C/C(=C(\C4=CC=[N+]"
     "(C)C=C4)C4=N/C(=C(/C5=CC=CC(C(N)=O)=C5)C5=CC=C2N5)C=C4)N3)C=C1"
 )
-with st.echo():
-    molecule = st.text_input("Molecule", DEFAULT_MOL)
-    smile_code = st_ketcher(molecule)
-    st.markdown(f"Smile code: ``{smile_code}``")
+PEPTIDE_EXAMPLE = "Leu-enkephalin (peptide)"
+EXAMPLE_MOLECULES = {
+    "Small molecule": DEFAULT_MOLECULE,
+    PEPTIDE_EXAMPLE: DEMO_DIRECTORY.joinpath("leu-enkephalin.ket").read_text(),
+}
+PEPTIDE_FORMAT = "KET"
+MIN_HEIGHT = 300
+MAX_HEIGHT = 900
+DEFAULT_HEIGHT = 500
+HEIGHT_STEP = 50
 
-st.write("---")
+st.set_page_config(layout="wide")
+st.title("`streamlit-ketcher-editor`")
+st.caption("One editor per page is supported, so the options below share it.")
 
-st.header("Components with custom height")
-with st.echo():
-    st_ketcher("CCO", height=400)
-    st_ketcher("CCO", height=800)
+with st.sidebar:
+    example = st.selectbox("Example", list(EXAMPLE_MOLECULES))
+    is_peptide_example = example == PEPTIDE_EXAMPLE
+    default_format_index = (
+        SUPPORTED_MOLECULE_FORMATS.index(PEPTIDE_FORMAT) if is_peptide_example else 0
+    )
+    molecule_format = st.selectbox(
+        "Output format", SUPPORTED_MOLECULE_FORMATS, index=default_format_index
+    )
+    live_update = st.toggle("Live update", value=True)
+    height = st.slider(
+        "Height (px)", MIN_HEIGHT, MAX_HEIGHT, DEFAULT_HEIGHT, step=HEIGHT_STEP
+    )
 
-st.header("Component with `molfile` format")
-with st.echo():
-    molfile = st_ketcher(molecule_format="MOLFILE")
-    st.markdown("molfile:")
-    st.code(molfile)
+if is_peptide_example:
+    st.info(
+        "Leu-enkephalin, a pentapeptide. Pick *Macromolecules* in the menu at the "
+        "right end of the top toolbar to edit it as a chain of monomers. "
+        "Only KET keeps the monomers, so KET is selected as the output format."
+    )
 
-st.header("Component with the Macromolecules mode")
-st.markdown(
-    "Leu-enkephalin, a pentapeptide. Pick *Macromolecules* in the menu at the "
-    "right end of the top toolbar to edit it as a chain of monomers. "
-    "Only KET keeps the monomers, so the editor returns KET."
-)
 with st.echo():
-    peptide = DEMO_DIRECTORY.joinpath("leu-enkephalin.ket").read_text()
-    peptide_ket = st_ketcher(peptide, molecule_format="KET", macromolecules=True)
-    with st.expander("KET"):
-        st.code(peptide_ket, language="json")
+    molecule = st.text_input("Molecule", EXAMPLE_MOLECULES[example])
+    result = st_ketcher(
+        molecule,
+        height=height,
+        molecule_format=molecule_format,
+        macromolecules=True,
+        live_update=live_update,
+    )
+
+st.markdown(f"**{molecule_format} output:**")
+st.code(result or "")
