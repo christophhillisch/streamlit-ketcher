@@ -36,9 +36,18 @@ MoleculeFormatType = Literal[
 ]
 
 
+class EditorMode(Enum):
+    MOLECULES = "molecules"
+    MACROMOLECULES = "macromolecules"
+
+
+EditorModeType = Literal["molecules", "macromolecules"]
+
+
 SUPPORTED_MOLECULE_FORMATS = [
     molecule_format.value for molecule_format in MoleculeFormat
 ]
+SUPPORTED_EDITOR_MODES = [editor_mode.value for editor_mode in EditorMode]
 DEFAULT_HEIGHT = 500
 
 
@@ -58,6 +67,17 @@ def _validate_height(height: int) -> None:
         raise ValueError(f"Height must be a positive integer, got: {height!r}")
 
 
+def _validate_initial_mode(initial_mode: str, macromolecules: bool) -> None:
+    """Raise ValueError if the editor cannot start in the initial mode."""
+    if initial_mode not in SUPPORTED_EDITOR_MODES:
+        raise ValueError(
+            f"Unsupported value for initial mode: {initial_mode!r}. "
+            f"Supported values: {', '.join(SUPPORTED_EDITOR_MODES)}"
+        )
+    if initial_mode == EditorMode.MACROMOLECULES.value and not macromolecules:
+        raise ValueError("Initial mode 'macromolecules' requires macromolecules=True")
+
+
 def _validate_boolean(name: str, value: bool) -> None:
     """Raise ValueError if the value is not a boolean."""
     if not isinstance(value, bool):
@@ -71,6 +91,7 @@ def st_ketcher(
     height: int = DEFAULT_HEIGHT,
     molecule_format: MoleculeFormatType = MoleculeFormat.SMILES.value,
     macromolecules: bool = False,
+    initial_mode: EditorModeType = EditorMode.MOLECULES.value,
     live_update: bool = True,
     key: str | None = None,
 ) -> str | None:
@@ -91,6 +112,10 @@ def st_ketcher(
     macromolecules: bool
         Whether to show Ketcher's switch to the Macromolecules mode
         (RNA, DNA and peptides). False by default.
+    initial_mode: str
+        The mode the editor opens in: "molecules" or "macromolecules".
+        "macromolecules" requires ``macromolecules=True``. In that mode only
+        the "KET" and "MOLFILE" formats are returned. "molecules" by default.
     live_update: bool
         Whether to send the drawing to Python while the user draws. Each
         change, debounced by 300 ms, reruns the script. Set it to False to
@@ -111,17 +136,20 @@ def st_ketcher(
     ValueError
         If ``molecule_format`` is not one of the supported formats, or
         ``height`` is not a positive integer, or ``macromolecules`` or
-        ``live_update`` is not a boolean.
+        ``live_update`` is not a boolean, or ``initial_mode`` is not a
+        supported mode or is "macromolecules" without ``macromolecules=True``.
     """
     _validate_molecule_format(molecule_format)
     _validate_height(height)
     _validate_boolean("Macromolecules", macromolecules)
+    _validate_initial_mode(initial_mode, macromolecules)
     _validate_boolean("Live update", live_update)
     molecule: str | None = _render_component(
         molecule=value,
         height=height,
         molecule_format=molecule_format,
         macromolecules=macromolecules,
+        initial_mode=initial_mode,
         live_update=live_update,
         key=key,
         default=value,

@@ -4,6 +4,7 @@ import { StandaloneStructServiceProvider } from "ketcher-standalone/dist/binaryW
 import { Editor as KetcherEditor } from "ketcher-react";
 import styled from "@emotion/styled";
 import { Ketcher, ketcherProvider } from "ketcher-core";
+import { EditorModeType, MODE_MACROMOLECULES } from "./editor-mode";
 
 // Ketcher loads "<url>/templates/..." relative to the component's index.html.
 const STATIC_RESOURCES_URL = ".";
@@ -31,11 +32,13 @@ export interface StreamlitKetcherEditorProps extends Omit<
 > {
   onInit?: (ketcher: Ketcher) => void;
   height: number;
+  initialMode: EditorModeType;
 }
 
 export const StreamlitKetcherEditor = ({
   height,
   onInit,
+  initialMode,
   ...rest
 }: StreamlitKetcherEditorProps) => {
   // When StrictMode remounts the editor, ketcher-react calls onInit with its
@@ -44,6 +47,10 @@ export const StreamlitKetcherEditor = ({
   const handleInit = (ketcher: Ketcher): void => {
     setTimeout(() => {
       if (isKetcherRegistered(ketcher)) {
+        // Ketcher's Editor has no prop for the mode it opens in.
+        if (initialMode === MODE_MACROMOLECULES) {
+          ketcher.switchToMacromoleculesMode();
+        }
         onInit?.(ketcher);
       }
     });

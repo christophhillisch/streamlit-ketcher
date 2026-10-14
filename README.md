@@ -47,20 +47,42 @@ draws. Pass `live_update=False` to keep the Apply button.
 
 ## Options
 
-| Argument          | Default    | Description                                                                 |
-| ----------------- | ---------- | --------------------------------------------------------------------------- |
-| `value`           | `""`       | Molecule shown when the editor first renders.                               |
-| `height`          | `500`      | Height of the editor in pixels.                                             |
-| `molecule_format` | `"SMILES"` | Format of the returned molecule. See [Molecule formats](#molecule-formats). |
-| `macromolecules`  | `False`    | Show Ketcher's switch to the Macromolecules mode (RNA, DNA and peptides).   |
-| `live_update`     | `True`     | Send the drawing while the user draws. See [Live update](#live-update).     |
-| `key`             | `None`     | Unique key for the widget.                                                  |
+| Argument          | Default       | Description                                                                 |
+| ----------------- | ------------- | --------------------------------------------------------------------------- |
+| `value`           | `""`          | Molecule shown when the editor first renders.                               |
+| `height`          | `500`         | Height of the editor in pixels.                                             |
+| `molecule_format` | `"SMILES"`    | Format of the returned molecule. See [Molecule formats](#molecule-formats). |
+| `macromolecules`  | `False`       | Show Ketcher's switch to the Macromolecules mode (RNA, DNA and peptides).   |
+| `initial_mode`    | `"molecules"` | Mode the editor opens in. See [Macromolecules](#macromolecules).            |
+| `live_update`     | `True`        | Send the drawing while the user draws. See [Live update](#live-update).     |
+| `key`             | `None`        | Unique key for the widget.                                                  |
+
+## Macromolecules
 
 The Macromolecules mode is hidden by default, which matches the behaviour
 before Ketcher 3. Enable it with:
 
 ```python
 smiles = st_ketcher(molecule, macromolecules=True)
+```
+
+To open the editor in the Macromolecules mode, also pass
+`initial_mode="macromolecules"`. Load and return macromolecules as KET, the
+format that keeps the monomers. `"MOLFILE"` also works and returns a V3000
+molfile. The other formats do not work in the Macromolecules mode:
+
+- `"SMILES"`, `"CXSMILES"`, `"SMARTS"` and `"RXN"`: Ketcher refuses them, so
+  the editor sends nothing and `st_ketcher` keeps returning `value`.
+- `"INCHI"` and `"INCHI_KEY"`: Ketcher does not expand the monomers, so the
+  InChI comes back empty.
+
+```python
+peptide_ket = st_ketcher(
+    peptide_ket,
+    molecule_format="KET",
+    macromolecules=True,
+    initial_mode="macromolecules",
+)
 ```
 
 ## Live update

@@ -1,6 +1,7 @@
 import { render, waitFor } from "@testing-library/react";
 import { Ketcher } from "ketcher-core";
 import { StrictMode, useEffect } from "react";
+import { EditorModeType } from "./editor-mode";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   StreamlitKetcherEditor,
@@ -26,6 +27,13 @@ vi.mock("ketcher-core", () => ({
 
 let nextKetcherId = 1;
 
+const recordedCalls: string[] = [];
+const initialModeKetcher = {
+  id: "initial-mode",
+  switchToMacromoleculesMode: () =>
+    recordedCalls.push("switchToMacromoleculesMode"),
+} as unknown as Ketcher;
+
 // Mirrors ketcher-react: each mount builds and registers a new instance, and
 // the unmount unregisters it once the build has resolved.
 const RemountingKetcherEditor = ({
@@ -44,6 +52,16 @@ const RemountingKetcherEditor = ({
   return null;
 };
 
+const InitializingKetcherEditor = ({
+  onInit,
+}: StreamlitKetcherEditorProps): null => {
+  useEffect(() => {
+    onInit?.(initialModeKetcher);
+  }, [onInit]);
+
+  return null;
+};
+
 describe("StreamlitKetcherEditor", () => {
   afterEach(() => editorMock.mockReset());
 
@@ -53,6 +71,7 @@ describe("StreamlitKetcherEditor", () => {
       render(
         <StreamlitKetcherEditor
           height={EDITOR_HEIGHT}
+          initialMode="molecules"
           errorHandler={vi.fn()}
           disableMacromoleculesEditor={disableMacromoleculesEditor}
         />,
@@ -73,6 +92,7 @@ describe("StreamlitKetcherEditor", () => {
       <StrictMode>
         <StreamlitKetcherEditor
           height={EDITOR_HEIGHT}
+          initialMode="molecules"
           errorHandler={vi.fn()}
           onInit={handleInit}
         />
@@ -84,4 +104,28 @@ describe("StreamlitKetcherEditor", () => {
     expect(registeredKetcherIds).toContain(initializedKetcher.id);
     expect(handleInit).toHaveBeenCalledOnce();
   });
+
+  it.each<[EditorModeType, string[]]>([
+    ["molecules", ["onInit"]],
+    ["macromolecules", ["switchToMacromoleculesMode", "onInit"]],
+  ])(
+    "initialMode=%s should open the editor in that mode before onInit",
+    async (initialMode, expectedCalls) => {
+      recordedCalls.length = 0;
+      registeredKetcherIds.add(initialModeKetcher.id);
+      editorMock.mockImplementation(InitializingKetcherEditor);
+
+      render(
+        <StreamlitKetcherEditor
+          height={EDITOR_HEIGHT}
+          initialMode={initialMode}
+          errorHandler={vi.fn()}
+          onInit={() => recordedCalls.push("onInit")}
+        />,
+      );
+
+      await waitFor(() => expect(recordedCalls).toContain("onInit"));
+      expect(recordedCalls).toEqual(expectedCalls);
+    },
+  );
 });
