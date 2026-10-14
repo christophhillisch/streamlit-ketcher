@@ -32,14 +32,18 @@ with st.echo():
     st.markdown("molfile:")
     st.code(molfile)
 
-st.header("Component with the Macromolecules mode")
+st.header("Component in the Macromolecules mode")
 st.markdown(
-    "Leu-enkephalin, a pentapeptide. Pick *Macromolecules* in the menu at the "
-    "right end of the top toolbar to edit it as a chain of monomers. "
-    "Only KET keeps the monomers, so the editor returns KET."
+    "Leu-enkephalin, a pentapeptide, opened in the Macromolecules mode. "
+    "KET keeps the monomers, so the editor returns KET."
 )
 with st.echo():
     peptide = DEMO_DIRECTORY.joinpath("leu-enkephalin.ket").read_text()
-    peptide_ket = st_ketcher(peptide, molecule_format="KET", macromolecules=True)
+    peptide_ket = st_ketcher(
+        peptide,
+        molecule_format="KET",
+        macromolecules=True,
+        initial_mode="macromolecules",
+    )
     with st.expander("KET"):
         st.code(peptide_ket, language="json")
