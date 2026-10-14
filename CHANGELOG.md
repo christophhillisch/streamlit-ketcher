@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `initial_mode="macromolecules"` opens the editor in Ketcher's
+  Macromolecules mode. It requires `macromolecules=True`.
+
 ## 0.1.1
 
 ### Fixed

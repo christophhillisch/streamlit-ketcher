@@ -5,7 +5,9 @@ from typing import get_args
 import pytest
 
 from streamlit_ketcher_editor import (
+    SUPPORTED_EDITOR_MODES,
     SUPPORTED_MOLECULE_FORMATS,
+    EditorModeType,
     MoleculeFormatType,
     st_ketcher,
 )
@@ -30,6 +32,7 @@ def test_render_empty(mock_render_component):
         height=500,
         molecule_format="SMILES",
         macromolecules=False,
+        initial_mode="molecules",
         live_update=True,
         key=None,
         default="",
@@ -43,6 +46,7 @@ def test_render_all_parameters(mock_render_component):
         height=600,
         molecule_format="SMILES",
         macromolecules=True,
+        initial_mode="macromolecules",
         live_update=False,
         key="key",
     )
@@ -51,6 +55,7 @@ def test_render_all_parameters(mock_render_component):
         height=600,
         molecule_format="SMILES",
         macromolecules=True,
+        initial_mode="macromolecules",
         live_update=False,
         key="key",
         default="CC0",
@@ -66,6 +71,7 @@ def test_render_molecule_format(mock_render_component, molecule_format):
         height=500,
         molecule_format=molecule_format,
         macromolecules=False,
+        initial_mode="molecules",
         live_update=True,
         key=None,
         default="",
@@ -111,6 +117,7 @@ def test_render_macromolecules(mock_render_component, macromolecules):
         height=500,
         molecule_format="SMILES",
         macromolecules=macromolecules,
+        initial_mode="molecules",
         live_update=True,
         key=None,
         default="",
@@ -137,6 +144,7 @@ def test_render_live_update(mock_render_component, live_update):
         height=500,
         molecule_format="SMILES",
         macromolecules=False,
+        initial_mode="molecules",
         live_update=live_update,
         key=None,
         default="",
@@ -152,3 +160,47 @@ def test_invalid_live_update(mock_render_component, live_update):
     ):
         st_ketcher(live_update=live_update)
     mock_render_component.assert_not_called()
+
+
+@unittest.mock.patch("streamlit_ketcher_editor._render_component")
+@pytest.mark.parametrize("initial_mode", ["molecules", "macromolecules"])
+def test_render_initial_mode(mock_render_component, initial_mode):
+    st_ketcher(macromolecules=True, initial_mode=initial_mode)
+    mock_render_component.assert_called_once_with(
+        molecule="",
+        height=500,
+        molecule_format="SMILES",
+        macromolecules=True,
+        initial_mode=initial_mode,
+        live_update=True,
+        key=None,
+        default="",
+    )
+
+
+@unittest.mock.patch("streamlit_ketcher_editor._render_component")
+@pytest.mark.parametrize("initial_mode", ["MOLECULES", "macro", "", None])
+def test_invalid_initial_mode(mock_render_component, initial_mode):
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            f"Unsupported value for initial mode: {initial_mode!r}. "
+            "Supported values: molecules, macromolecules"
+        ),
+    ):
+        st_ketcher(macromolecules=True, initial_mode=initial_mode)
+    mock_render_component.assert_not_called()
+
+
+@unittest.mock.patch("streamlit_ketcher_editor._render_component")
+def test_macromolecules_initial_mode_requires_macromolecules(mock_render_component):
+    with pytest.raises(
+        ValueError,
+        match=re.escape("Initial mode 'macromolecules' requires macromolecules=True"),
+    ):
+        st_ketcher(initial_mode="macromolecules")
+    mock_render_component.assert_not_called()
+
+
+def test_editor_mode_type_matches_supported_modes():
+    assert list(get_args(EditorModeType)) == SUPPORTED_EDITOR_MODES

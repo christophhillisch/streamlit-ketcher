@@ -9,6 +9,7 @@ import {
   LoadingPlaceholder,
 } from "./loading-placeholder.component";
 import { FixedTheme } from "./theme";
+import { EditorModeType } from "./editor-mode";
 import {
   logKetcherError,
   MoleculeFormatType,
@@ -24,6 +25,7 @@ export interface IKetcherWidgetArgs {
   height: number;
   molecule_format: MoleculeFormatType;
   macromolecules: boolean;
+  initial_mode: EditorModeType;
   live_update: boolean;
 }
 
@@ -38,6 +40,7 @@ export const KetcherWidget = function (props: IKetcherWidgetProps) {
     molecule_format: moleculeFormat,
     height,
     macromolecules,
+    initial_mode: initialMode,
     live_update: isLiveUpdate,
   } = props.args;
   const theme = props.theme as FixedTheme;
@@ -66,6 +69,7 @@ export const KetcherWidget = function (props: IKetcherWidgetProps) {
           <StreamlitKetcherEditor
             height={height}
             disableMacromoleculesEditor={!macromolecules}
+            initialMode={initialMode}
             errorHandler={logKetcherError}
             onInit={handleInit}
           />
