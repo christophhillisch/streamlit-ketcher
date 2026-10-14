@@ -12,3 +12,6 @@ venv/
 
 # Jetbrain IDE
 .idea
+
+# Local Claude Code instructions
+CLAUDE.md
