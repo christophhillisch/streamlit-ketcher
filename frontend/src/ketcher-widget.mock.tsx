@@ -20,9 +20,8 @@ const mockKetcher = {
       changeHandler = handler;
       return handler;
     },
-    unsubscribe: () => {
-      changeHandler = null;
-    },
+    unsubscribe: () => (changeHandler = null),
+    struct: () => ({ atoms: new Map(), bonds: new Map() }),
   },
   getSmiles: (isExtended?: boolean) =>
     (isExtended ? "CXSMILES:" : "SMILES:") + currentMolecule,

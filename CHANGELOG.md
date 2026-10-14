@@ -7,6 +7,14 @@
 - `initial_mode="macromolecules"` opens the editor in Ketcher's
   Macromolecules mode. It requires `macromolecules=True`.
 
+## 0.1.1
+
+### Fixed
+
+- With live update, placing a ring or other template no longer sends a second,
+  ghost copy of it to Python. The editor now waits until Ketcher's template
+  preview under the cursor is gone before sending the drawing.
+
 ## 0.1.0
 
 First release of this fork of
