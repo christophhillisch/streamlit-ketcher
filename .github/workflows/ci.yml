@@ -145,6 +145,7 @@ jobs:
           cp dist/streamlit_ketcher_editor-*.whl \
             "component-preview/wheels/${GITHUB_SHA}/"
           cp streamlit_app.py component-preview/
+          cp -r demo component-preview/
 
           (
           cd component-preview/;
